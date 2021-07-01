@@ -9,7 +9,7 @@
 
 double recombination (double E, double F, double rho)
 //Takes input of change in ionized energy (E), electric field (F), and argon density (rho)
-//units of MeV, kV/cm, and g/cm^3, respectively
+//units of MeV, kV/cm, and g/cm^3 respectively
 {
   double value;
   double numer;
@@ -17,8 +17,8 @@ double recombination (double E, double F, double rho)
   //The following calculations are based off of the modified box model used in the ICARUS experiment, with constant values taken from the brookhaven page on liquid argon TPCs
   value = (0.930 + (0.212/(F * rho))*(E));
   numer = log(value);
-  total = numer / (0.212 / ( F * rho));
-  //returns the amount of ionized energy that survived recombination
+  total = numer / (0.212 / ( F * rho) * E);
+  //returns the ratio of ionization charge that survived recombination
   return total;
 }
 
@@ -30,7 +30,7 @@ double absorption (double I_nought, double distance)
   double intensity;
   double power;
   beta_coefficient = 0.0;
-  power = -1 * beta_coefficient * distance;
+  power = -1 * beta_coefficient * distance; //would need to keep track of the movement in each step. Momentum could work?
   intensity = I_nought * exp(power);
   return intensity;
 }
@@ -47,11 +47,17 @@ double pair_production (double photon_energy)
   double energy; //bnl says this should be the incident particle energy, but that's the photon which is accounted for above
   double energy_transfer;
   double value;
-  atomic_mass = 39.948; //using average mass, should double check later
-  radiation_length = 14.0; //current units are cm, taken from bnl documentation
-  energy_transfer = energy / photon_energy;
-  value = atomic_mass / (avogadro * radiation_length) * (1 - 4 * energy_transfer / 3) * (1 - energy_transfer);
-  return value;
+  if(photon_energy >= 1.022) {
+    atomic_mass = 39.948; //using average mass, should double check later
+    radiation_length = 14.0; //current units are cm, taken from bnl documentation
+    energy_transfer = energy / photon_energy;
+    value = atomic_mass / (avogadro * radiation_length) * (1 - 4 * energy_transfer / 3) * (1 - energy_transfer);
+    return value;
+  }
+  else {
+    value = 0;
+    return value;
+  }
 
 
 }
@@ -98,6 +104,9 @@ double bremsstrahlung_probability (double e, double particle_mass)
 }
 
 int main()
+//for testing recombination rn
 {
-    return 0;
+    double val;
+    val = recombination(2, .1, 1.396);
+    std::cout << val << std::endl;
 }
