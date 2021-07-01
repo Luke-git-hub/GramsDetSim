@@ -9,6 +9,7 @@
 
 double recombination (double E, double F, double rho)
 //Takes input of change in ionized energy (E), electric field (F), and argon density (rho)
+//units of MeV, kV/cm, and g/cm^3, respectively
 {
   double value;
   double numer;
