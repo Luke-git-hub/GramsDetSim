@@ -49,8 +49,8 @@ int main () {
       double_t pri_py;
       double_t pri_pz;
       float_t compt_p;
-      vector_t compt_E;
-      vector_t compt_xPos;
+      // vector_t compt_E;
+      // vector_t compt_xPos;
 
       // LR 6/25/2021 I would recommed for the rest of these: list = vector_t, list of arrays = nested_t, everything else either float_t or double_t
 
@@ -72,12 +72,14 @@ int main () {
       //ss >> compt_E;
       //ss >> compt_xPos;
 
-      compt_E.push_back(ss);
-      compt_xPos.push_back(ss);
+      double_t var1 = 1;
+      // compt_E.push_back(var1);
+      // compt_xPos.push_back(var1);
 
 
 //Prints out each position with a label. This will change in the future and take each variable rut it through the corresponding function. 
 //Bug: This works up until compt_E. But compt_E is a list and this program cannot recognize that.
+      // Input from Simulator
       std::cout << "Line: "        << Line << " ";
       std::cout << "pri_E: "       << pri_E << " ";
       std::cout << "pri_xPos: "    << pri_xPos << " ";
@@ -88,11 +90,17 @@ int main () {
       std::cout << "pri_py: "      << pri_py << " ";
       std::cout << "pri_pz: "      << pri_pz << " ";
       std::cout << "compt_p: "     << compt_p << " ";
-      std::cout << "compt_E: "     << compt_E << " ";
-      std::cout << "compt_xPos: "  << compt_xPos << " ";
+      // std::cout << "compt_E: "     << compt_E << " ";
+      // std::cout << "compt_xPos: "  << compt_xPos << " ";
 
-      std::compt_E.clear();
-      std::compt_xPos.clear();
+      //Functions called to replicate what the detector will be recieving 
+      std::cout << "\n";
+      std::cout << "ionized energy after recombination: " << recombination(pri_E, .1, 1.396) << "MeV";
+      // std::cout << "compt_E: "     << compt_E << " ";
+      // std::cout << "compt_xPos: "  << compt_xPos << " ";
+
+      // compt_E.clear();
+      // compt_xPos.clear();
 
       std::cout << '\n';
   }   
