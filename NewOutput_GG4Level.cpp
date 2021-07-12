@@ -119,77 +119,188 @@ int main( int argc, char** argv ) {
 
 typedef struct hitVectors
        {
-	 std::vector<int>    PDGCode;
+	 // need to figure out how to add quantity ******************************
 	 std::vector<int>    numPhotons;
 	 std::vector<double> energy;
 	 std::vector<double> tStart;
 	 std::vector<double> xStart;
 	 std::vector<double> yStart;
 	 std::vector<double> zStart;
-	 std::vector<double> tEnd;
-	 std::vector<double> xEnd;
-	 std::vector<double> yEnd;
-	 std::vector<double> zEnd;
-	 std::vector<int>    identifier;
+	 // need energies here *************************************************
+	 // need to add ParentID ***********************************************
 } hitInfo;
 
- std::map< std::tuple< int, int, int >, hitInfo > hitMap;
+typedef  std::map< std::tuple< int, int, int >, hitInfo > hitMap;
 
- // Include Compton-induced hits in hitMap:
+ hitMap compt_hitMap;
+ hitMap phot_hitMap;
+ hitMap pair_hitMap;
+ hitMap ebrem_hitMap;
+
+ // Include Compton-induced hits in compt_hitMap:
 
  comptonHits.Foreach(
-   [&hitMap]( int run,
-	      int event, 
-	      int trackID, 
-	      int PDGCode, 
+    [&compt_hitMap](
+	      int run, 
+	      int event,
+	      int trackID,
 	      int numPhotons, 
 	      double energy, 
 	      double tStart, 
 	      double xStart, 
 	      double yStart, 
-	      double zStart, 
-	      double tEnd, 
-	      double xEnd, 
-	      double yEnd, 
-	      double zEnd, 
-	      int identifier)
+	      double zStart 
+)
      { // Copy the address of the struct. pointed to by run/event/trackID
-       auto &hit = hitMap[{run, event, trackID}];
+       auto &hit = compt_hitMap[{run, event, trackID}];
        // "Define the address of hit as hitMap[{run, event, trackID}] 	    
 
 	   
        // Append all the info in this ntuple row to the hitInfo vectors:
-       hit.PDGCode.push_back( PDGCode );
        hit.numPhotons.push_back( numPhotons );
        hit.energy.push_back( energy );
        hit.tStart.push_back( tStart );
        hit.xStart.push_back( xStart );
        hit.yStart.push_back( yStart );
        hit.zStart.push_back( zStart );
-       hit.tEnd.push_back( tEnd );
-       hit.xEnd.push_back( xEnd );
-       hit.yEnd.push_back( yEnd );
-       hit.zEnd.push_back( zEnd );
-       hit.identifier.push_back( identifier );
      },
 
+
      // List ntuple columns: 
-     {   "Run",
-         "Event",
-	 "TrackID",
-	 "PDGCode", 
+    {   "run",
+	"event", 
+	"trackID", 
 	 "numPhotons", 
 	 "energy", 
 	 "tStart", 
 	 "xStart", 
 	 "yStart", 
-	 "zStart", 
-	 "tEnd", 
-	 "xEnd", 
-	 "yEnd", 
-	 "zEnd", 
-	 "identifier"}
+	 "zStart"
+       
+	 }
      );
+
+ photHits.Foreach(
+   [&phot_hitMap](
+	      int run,
+	      int event,
+	      int trackID,  
+	      int numPhotons,
+      	      double energy,
+	      double tStart
+	      double xStart,
+	      double yStart,
+	      double zStart
+	      )
+
+{ // Copy the address of the struct. pointed to by run/event/trackID
+  auto &hit = phot_hitMap[{run, event, trackID}];
+ // "Define the address of hit as hitMap[{run, event, trackID}]
+
+ // Append all the info in this ntuple row to the hitInfo vectors:
+  hit.numPhotons.push_back( numPhotons );
+  hit.energy.push_back( energy );
+  hit.tStart.push_back( tStart );
+  hit.xStart.push_back( xStart );
+  hit.yStart.push_back( yStart );
+  hit.zStart.push_back( zStart );
+ },
+
+
+    // List ntuple columns:
+    {   "Run",
+	"Event",
+	"TrackID",
+	"numPhotons",
+	"energy",
+	"tStart",
+	"xStart",
+	"yStart",
+	"zStart"
+	}
+		  );
+
+ pairHits.Foreach(
+  [&pair_hitMap]( int run,
+		  int event,
+	     	  int trackID,
+	      	  int numPhotons,
+      		  double energy,
+                  double tStart
+	       	  double xStart,
+		  double yStart,
+		  double zStart
+	          )
+ 
+ { // Copy the address of the struct. pointed to by run/event/trackID
+   auto &hit = pair_hitMap[{run, event, trackID}];
+ // "Define the address of hit as hitMap[{run, event, trackID}]
+
+ // Append all the info in this ntuple row to the hitInfo vectors:
+   hit.numPhotons.push_back( numPhotons );
+   hit.energy.push_back( energy );
+   hit.tStart.push_back( tStart );
+   hit.xStart.push_back( xStart );
+   hit.yStart.push_back( yStart );
+   hit.zStart.push_back( zStart );
+ },
+
+
+  // List ntuple columns:
+  {   "Run",
+      "Event",
+      "TrackID",
+      "numPhotons",
+      "energy",
+      "tStart",
+      "xStart",
+      "yStart",
+      "zStart"
+      }
+		  );
+
+ pairHits.Foreach(
+  [&ebrem_hitMap](int run,
+    		  int event,
+      		  int trackID,
+	       	  int numPhotons,
+	       	  double energy,
+                  double tStart
+	          double xStart,
+		  double yStart,
+	          double zStart
+		  )
+
+
+  { // Copy the address of the struct. pointed to by run/event/trackID
+    auto &hit = ebrem_hitMap[{run, event, trackID}];
+
+    // "Define the address of hit as hitMap[{run, event, trackID}]
+
+    // Append all the info in this ntuple row to the hitInfo vectors:
+   
+    hit.numPhotons.push_back( numPhotons );
+    hit.energy.push_back( energy );
+    hit.tStart.push_back( tStart );
+    hit.xStart.push_back( xStart );
+    hit.yStart.push_back( yStart );
+    hit.zStart.push_back( zStart );
+  },
+
+
+  // List ntuple columns:
+  {   "Run",
+      "Event",
+      "TrackID",
+      "numPhotons",
+      "energy",
+      "tStart",
+      "xStart",
+      "yStart",
+      "zStart"
+      }
+                  );
+
 
  // Create the new output ntuple: 
 
@@ -198,44 +309,100 @@ typedef struct hitVectors
 
  // Define the variables to be accessed: 
 
- int Run;
- int Event; 
- int TrackID;
- std::vector<int> PDGCode;
- std::vector<int> numPhotons;
- std::vector<double> energy;
- std::vector<double> tStart;
- std::vector<double> xStart;
- std::vector<double> yStart;
- std::vector<double> zStart;
- std::vector<double> tEnd;
- std::vector<double> xEnd;
- std::vector<double> yEnd;
- std::vector<double> zEnd;
- std::vector<int> identifier;
+ int compt_Run;
+ int compt_Event; 
+ int compt_TrackID;
+ std::vector<int> compt_numPhotons;
+ std::vector<double> compt_energy;
+ std::vector<double> compt_tStart;
+ std::vector<double> compt_xStart;
+ std::vector<double> compt_yStart;
+ std::vector<double> compt_zStart;
+ 
+
+ int phot_Run;
+ int phot_Event;
+ int phot_TrackID;
+ std::vector<int> phot_numPhotons;
+ std::vector<double> phot_energy;
+ std::vector<double> phot_tStart;
+ std::vector<double> phot_xStart;
+ std::vector<double> phot_yStart;
+ std::vector<double> phot_zStart;
+
+
+ int pair_Run;
+ int pair_Event;
+ int pair_TrackID;
+ std::vector<int> pair_numPhotons;
+ std::vector<double> pair_energy;
+ std::vector<double> pair_tStart;
+ std::vector<double> pair_xStart;
+ std::vector<double> pair_yStart;
+ std::vector<double> pair_zStart;
+
+
+ int ebrem_Run;
+ int ebrem_Event;
+ int ebrem_TrackID;
+ std::vector<int> ebrem_numPhotons;
+ std::vector<double> ebrem_energy;
+ std::vector<double> ebrem_tStart;
+ std::vector<double> ebrem_xStart;
+ std::vector<double> ebrem_yStart;
+ std::vector<double> ebrem_zStart;
 
 
  // Assign each variable to its own branch:
 
- ntuple->Branch("Run", &Run, "Run/I");
- ntuple->Branch("Event", &Event, "Event/I");
- ntuple->Branch("TrackID", &TrackID, "TrackID/I");
- ntuple->Branch("PDGCode", &PDGCode);
- ntuple->Branch("numPhotons", &numPhotons);
- ntuple->Branch("energy", &energy);
- ntuple->Branch("tStart", &tStart);
- ntuple->Branch("xStart", &xStart);
- ntuple->Branch("yStart", &yStart);
- ntuple->Branch("zStart", &zStart);
- ntuple->Branch("tEnd", &tEnd);
- ntuple->Branch("xEnd", &xEnd);
- ntuple->Branch("yEnd", &yEnd);
- ntuple->Branch("zEnd", &zEnd);
- ntuple->Branch("identifier", &identifier);
+ ntuple->Branch("compt_Run", &compt_Run, "compt_Run/I");
+ ntuple->Branch("compt_Event", &compt_Event, "compt_Event/I");
+ ntuple->Branch("compt_TrackID", &compt_TrackID, "compt_TrackID/I");
+ ntuple->Branch("compt_numPhotons", &compt_numPhotons);
+ ntuple->Branch("compt_energy", &compt_energy);
+ ntuple->Branch("compt_tStart", &compt_tStart);
+ ntuple->Branch("compt_xStart", &compt_xStart);
+ ntuple->Branch("compt_yStart", &compt_yStart);
+ ntuple->Branch("compt_zStart", &compt_zStart);
+
+
+ ntuple->Branch("phot_Run", &phot_Run, "phot_Run/I");
+ ntuple->Branch("phot_Event", &phot_Event, "phot_Event/I");
+ ntuple->Branch("phot_TrackID", &phot_TrackID, "phot_TrackID/I");
+ ntuple->Branch("phot_numPhotons", &phot_numPhotons);
+ ntuple->Branch("phot_energy", &phot_energy);
+ ntuple->Branch("phot_tStart", &phot_tStart);
+ ntuple->Branch("phot_xStart", &phot_xStart);
+ ntuple->Branch("phot_yStart", &phot_yStart);
+ ntuple->Branch("phot_zStart", &phot_zStart);
+
+
+ ntuple->Branch("pair_Run", &pair_Run, "pair_Run/I");
+ ntuple->Branch("pair_Event", &pair_Event, "pair_Event/I");
+ ntuple->Branch("pair_TrackID", &pair_TrackID, "pair_TrackID/I");
+ ntuple->Branch("pair_numPhotons", &pair_numPhotons);
+ ntuple->Branch("pair_energy", &pair_energy);
+ ntuple->Branch("pair_tStart", &pair_tStart);
+ ntuple->Branch("pair_xStart", &pair_xStart);
+ ntuple->Branch("pair_yStart", &pair_yStart);
+ ntuple->Branch("pair_zStart", &pair_zStart);
+
+
+ ntuple->Branch("ebrem_Run", &ebrem_Run, "ebrem_Run/I");
+ ntuple->Branch("ebrem_Event", &ebrem_Event, "ebrem_Event/I");
+ ntuple->Branch("ebrem_TrackID", &ebrem_TrackID, "ebrem_TrackID/I");
+ ntuple->Branch("ebrem_numPhotons", &ebrem_numPhotons);
+ ntuple->Branch("ebrem_energy", &ebrem_energy);
+ ntuple->Branch("ebrem_tStart", &ebrem_tStart);
+ ntuple->Branch("ebrem_xStart", &ebrem_xStart);
+ ntuple->Branch("ebrem_yStart", &ebrem_yStart);
+ ntuple->Branch("ebrem_zStart", &ebrem_zStart);
+
+
 
  // Loop over map, write each entry to output ntuple. 
 
- for ( auto i = hitMap.begin(); i!= hitMap.end(); ++i )
+ for ( auto i = compt_hitMap.begin(); i!= compt_hitMap.end(); ++i )
    {
      auto key = (*i).first;
      Run = std::get<0>(key);
