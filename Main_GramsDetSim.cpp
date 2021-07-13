@@ -92,7 +92,7 @@ int main () {
       std::cout << "compt_p: "     << compt_p << " ";
       // std::cout << "compt_E: "     << compt_E << " ";
       // std::cout << "compt_xPos: "  << compt_xPos << " ";
-
+      //
       //Functions called to replicate what the detector will be recieving 
       std::cout << "\n";
       std::cout << "ionized energy after recombination: " << recombination(pri_E, .1, 1.396) << "MeV";
