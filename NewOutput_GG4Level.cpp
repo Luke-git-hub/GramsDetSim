@@ -25,7 +25,7 @@ int main( int argc, char** argv ) {
     filename = std::string( argv[1] );
 
   // Output file name:
-  std::string outputfile("NewOutput_GG4Level.cpp");
+  std::string outputfile("NewOutput_GG4Level.root");
   if ( argc > 2 )
     outputfile = std::string( argv[2] );
 
@@ -40,61 +40,34 @@ int main( int argc, char** argv ) {
   // Read TrackInfo ntuple:
 
   ROOT::RDataFrame trackInfo( "TrackInfo", filename,
-			      {"Run", "Event", "TrackID", "ParentID", 
-			       "PDGCode", "ProcessName", "t", "x", "y", "z",
-			       "Etot", "px", "py", "pz", "identifier"} );
+			      {"Run", "Event", "TrackID", "ProcessName"} );
 
   // Copy TrackInfo's info to trackMap: 
 
   trackInfo.Foreach(
-		    [&trackMap]( int Run, 
-				 int Event, 
-				 int TrackID, 
-				 int ParentID, 
-				 int PDGCode, 
-				 ROOT::VecOps::RVec<char>ProcessName,
-				 ROOT::VecOps::RVec<double>t,
-				 ROOT::VecOps::RVec<double>x,
-				 ROOT::VecOps::RVec<double>y,
-				 ROOT::VecOps::RVec<double>z,
-				 double Etot,
-				 ROOT::VecOps::RVec<double>px,
-				 ROOT::VecOps::RVec<double>py,
-				 ROOT::VecOps::RVec<double>pz,
-				 int identifier )
-// Check if ID int**********************************************************
+		    [&trackMap]( int run, 
+				 int event, 
+				 int trackID, 
+				 ROOT::VecOps::RVec<char>process)
 		    {
-		      std::string ProcessName;
+		      std::string processName;
 		      for ( auto i = process.begin(); 
 			    i!= process.end() && (*i) !=0; ++i)
 			processName.push_back(*i);
-		      trackMap[{Run,Event,TrackID,ParentID}] = ProcessName;
+		      trackMap[{run,event,trackID}] = processName;
 		    },
-		    {"Run", "Event", "TrackID", "ParentID", "ProcessName", 
-		     "t", "x", "y", "z", "Etot", "px", "py", "pz",
-		     "identifier" }
+		     
+		    {"Run", "Event", "TrackID", "ProcessName" }
 		    );
-
-
   if (debug) {
     for ( auto i = trackMap.begin(); i != trackMap.end(); ++i ){
       auto key = (*i).first;
       auto value = (*i).second;
-      std::cout << " Run=" << std::get<0>(key)
-		<< " Event=" << std::get<1>(key)
-		<< " TrackID=" << std::get<2>(key)
-		<< " ParentID=" << std::get<3>(key)
-		<< " ProcessName=" << value 
-		<< " t=" << std::get<5>(key)
-		<< " x=" << std::get<6>(key)
-		<< " y=" << std::get<7>(key)
-		<< " z=" << std::get<8>(key)
-		<< " Etot=" << std::get<9>(key)
-		<< " px=" << std::get<10>(key)
-		<< " py=" << std::get<11>(key)
-		<< " pz=" << std::get<12>(key)
-		<< " identifier=" << std::get<13>(key)
-	//check key vs value for 5-13 **************************************
+      std::cout << " run=" << std::get<0>(key)
+		<< " event=" << std::get<1>(key)
+		<< " trackID=" << std::get<2>(key)
+		<< " parentID=" << std::get<3>(key)
+		<< " process=" << value << std::endl;
     } // loop over track
   } // if debug
 
@@ -102,51 +75,357 @@ int main( int argc, char** argv ) {
 
   ROOT::RDataFrame larHits( "LArHits", filename );
   auto comptonHits = larHits.Filter(
-       [&trackMap](int Run, int Event,  int TrackID, int ParentID)
+       [&trackMap](int run, int event,  int trackID)
      { 
        return trackMap[{Run, Event, TrackID}]  == "compt";
-       //check this ^^ *****************************************************
      },
-       { "Run", "Event", "TrackID", "ParentID" }
+       { "Run", "Event", "TrackID" }
 				    );
+
+  // Filter photoabsorption rows from LArHits:
+
+  ROOT::RDataFrame larHits( "LArHits", filename );
+  auto photHits = larHits.Filter(
+       [&trackMap](int run, int event, int trackID)
+       {
+	 return trackMap[{Run, Event, TrackID}] == "phot";
+       },
+       { "Run", "Event", "TrackID"}
+			           );
+
+  // Filter pair production rows from LArHits:
+
+  ROOT::RDataFrame larHits( "LarHits", filename);
+  auto pairHits = larHits.Filter(
+       [&trackMap](int run, int event, int trackID)
+    {
+      return trackMap[{Run, Event, TrackID}] == "pair";
+    },
+    { "Run", "Event", "TrackID"}
+                                );
+
+// Filter Bremsstrahlung rows from LArHits:
+
+  ROOT::RDataFrame larHits( "LArHits", filename);
+  auto ebremHits = larHits.Filter(
+       [&trackMap](int run, int event, int trackID )
+  {
+    return trackMap[{Run, Event, TrackID}] == "ebrem";
+  },
+  { "Run", "Event", "TrackID"}
+                              );
+
        // Define hitVectors:
 
 typedef struct hitVectors
        {
-	 std::vector<int>    PDGCode;
+	 // need to figure out how to add quantity ******************************
 	 std::vector<int>    numPhotons;
 	 std::vector<double> energy;
 	 std::vector<double> tStart;
 	 std::vector<double> xStart;
 	 std::vector<double> yStart;
 	 std::vector<double> zStart;
-	 std::vector<double> tEnd;
-	 std::vector<double> xEnd;
-	 std::vector<double> yEnd;
-	 std::vector<double> zEnd;
-	 std::vector<int>    identifier;
+	 // need energies here *************************************************
+	 // need to add ParentID ***********************************************
 } hitInfo;
 
- std::map< std::tuple< int, int, int >, hitInfo > hitMap;
+typedef  std::map< std::tuple< int, int, int >, hitInfo > hitMap;
 
- // Include Compton-induced hits in hitMap:
+ hitMap compt_hitMap;
+ hitMap phot_hitMap;
+ hitMap pair_hitMap;
+ hitMap ebrem_hitMap;
 
- comptonHits.Foreach{
-   [&hitMap]( int Run,
-	      int Event, 
-	      int TrackID, 
-	      int PDGCode, 
+ // Include Compton-induced hits in compt_hitMap:
+
+ comptonHits.Foreach(
+    [&compt_hitMap](
+	      int run, 
+	      int event,
+	      int trackID,
 	      int numPhotons, 
 	      double energy, 
 	      double tStart, 
 	      double xStart, 
 	      double yStart, 
-	      double zStart, 
-	      double tEnd, 
-	      double xEnd, 
-	      double yEnd, 
-	      double zEnd, 
-	      int identifier)
+	      double zStart 
+)
      { // Copy the address of the struct. pointed to by run/event/trackID
-       auto &hit = hitMap[{Run, Event, TrackID}];
-				   
+       auto &hit = compt_hitMap[{run, event, trackID}];
+       // "Define the address of hit as hitMap[{run, event, trackID}] 	    
+
+	   
+       // Append all the info in this ntuple row to the hitInfo vectors:
+       hit.numPhotons.push_back( numPhotons );
+       hit.energy.push_back( energy );
+       hit.tStart.push_back( tStart );
+       hit.xStart.push_back( xStart );
+       hit.yStart.push_back( yStart );
+       hit.zStart.push_back( zStart );
+     },
+
+
+     // List ntuple columns: 
+    {   "run",
+	"event", 
+	"trackID", 
+	 "numPhotons", 
+	 "energy", 
+	 "tStart", 
+	 "xStart", 
+	 "yStart", 
+	 "zStart"
+       
+	 }
+     );
+
+ photHits.Foreach(
+   [&phot_hitMap](
+	      int run,
+	      int event,
+	      int trackID,  
+	      int numPhotons,
+      	      double energy,
+	      double tStart
+	      double xStart,
+	      double yStart,
+	      double zStart
+	      )
+
+{ // Copy the address of the struct. pointed to by run/event/trackID
+  auto &hit = phot_hitMap[{run, event, trackID}];
+ // "Define the address of hit as hitMap[{run, event, trackID}]
+
+ // Append all the info in this ntuple row to the hitInfo vectors:
+  hit.numPhotons.push_back( numPhotons );
+  hit.energy.push_back( energy );
+  hit.tStart.push_back( tStart );
+  hit.xStart.push_back( xStart );
+  hit.yStart.push_back( yStart );
+  hit.zStart.push_back( zStart );
+ },
+
+
+    // List ntuple columns:
+    {   "Run",
+	"Event",
+	"TrackID",
+	"numPhotons",
+	"energy",
+	"tStart",
+	"xStart",
+	"yStart",
+	"zStart"
+	}
+		  );
+
+ pairHits.Foreach(
+  [&pair_hitMap]( int run,
+		  int event,
+	     	  int trackID,
+	      	  int numPhotons,
+      		  double energy,
+                  double tStart
+	       	  double xStart,
+		  double yStart,
+		  double zStart
+	          )
+ 
+ { // Copy the address of the struct. pointed to by run/event/trackID
+   auto &hit = pair_hitMap[{run, event, trackID}];
+ // "Define the address of hit as hitMap[{run, event, trackID}]
+
+ // Append all the info in this ntuple row to the hitInfo vectors:
+   hit.numPhotons.push_back( numPhotons );
+   hit.energy.push_back( energy );
+   hit.tStart.push_back( tStart );
+   hit.xStart.push_back( xStart );
+   hit.yStart.push_back( yStart );
+   hit.zStart.push_back( zStart );
+ },
+
+
+  // List ntuple columns:
+  {   "Run",
+      "Event",
+      "TrackID",
+      "numPhotons",
+      "energy",
+      "tStart",
+      "xStart",
+      "yStart",
+      "zStart"
+      }
+		  );
+
+ pairHits.Foreach(
+  [&ebrem_hitMap](int run,
+    		  int event,
+      		  int trackID,
+	       	  int numPhotons,
+	       	  double energy,
+                  double tStart
+	          double xStart,
+		  double yStart,
+	          double zStart
+		  )
+
+
+  { // Copy the address of the struct. pointed to by run/event/trackID
+    auto &hit = ebrem_hitMap[{run, event, trackID}];
+
+    // "Define the address of hit as hitMap[{run, event, trackID}]
+
+    // Append all the info in this ntuple row to the hitInfo vectors:
+   
+    hit.numPhotons.push_back( numPhotons );
+    hit.energy.push_back( energy );
+    hit.tStart.push_back( tStart );
+    hit.xStart.push_back( xStart );
+    hit.yStart.push_back( yStart );
+    hit.zStart.push_back( zStart );
+  },
+
+
+  // List ntuple columns:
+  {   "Run",
+      "Event",
+      "TrackID",
+      "numPhotons",
+      "energy",
+      "tStart",
+      "xStart",
+      "yStart",
+      "zStart"
+      }
+                  );
+
+
+ // Create the new output ntuple: 
+
+ TFile* output = new TFile(outputfile.c_str(), "RECREATE");
+ TTree* ntuple = new TTree("comptonNtuple", "Energy deposited in Compton scattering");
+
+ // Define the variables to be accessed: 
+
+ int compt_Run;
+ int compt_Event; 
+ int compt_TrackID;
+ std::vector<int> compt_numPhotons;
+ std::vector<double> compt_energy;
+ std::vector<double> compt_tStart;
+ std::vector<double> compt_xStart;
+ std::vector<double> compt_yStart;
+ std::vector<double> compt_zStart;
+ 
+
+ int phot_Run;
+ int phot_Event;
+ int phot_TrackID;
+ std::vector<int> phot_numPhotons;
+ std::vector<double> phot_energy;
+ std::vector<double> phot_tStart;
+ std::vector<double> phot_xStart;
+ std::vector<double> phot_yStart;
+ std::vector<double> phot_zStart;
+
+
+ int pair_Run;
+ int pair_Event;
+ int pair_TrackID;
+ std::vector<int> pair_numPhotons;
+ std::vector<double> pair_energy;
+ std::vector<double> pair_tStart;
+ std::vector<double> pair_xStart;
+ std::vector<double> pair_yStart;
+ std::vector<double> pair_zStart;
+
+
+ int ebrem_Run;
+ int ebrem_Event;
+ int ebrem_TrackID;
+ std::vector<int> ebrem_numPhotons;
+ std::vector<double> ebrem_energy;
+ std::vector<double> ebrem_tStart;
+ std::vector<double> ebrem_xStart;
+ std::vector<double> ebrem_yStart;
+ std::vector<double> ebrem_zStart;
+
+
+ // Assign each variable to its own branch:
+
+ ntuple->Branch("compt_Run", &compt_Run, "compt_Run/I");
+ ntuple->Branch("compt_Event", &compt_Event, "compt_Event/I");
+ ntuple->Branch("compt_TrackID", &compt_TrackID, "compt_TrackID/I");
+ ntuple->Branch("compt_numPhotons", &compt_numPhotons);
+ ntuple->Branch("compt_energy", &compt_energy);
+ ntuple->Branch("compt_tStart", &compt_tStart);
+ ntuple->Branch("compt_xStart", &compt_xStart);
+ ntuple->Branch("compt_yStart", &compt_yStart);
+ ntuple->Branch("compt_zStart", &compt_zStart);
+
+
+ ntuple->Branch("phot_Run", &phot_Run, "phot_Run/I");
+ ntuple->Branch("phot_Event", &phot_Event, "phot_Event/I");
+ ntuple->Branch("phot_TrackID", &phot_TrackID, "phot_TrackID/I");
+ ntuple->Branch("phot_numPhotons", &phot_numPhotons);
+ ntuple->Branch("phot_energy", &phot_energy);
+ ntuple->Branch("phot_tStart", &phot_tStart);
+ ntuple->Branch("phot_xStart", &phot_xStart);
+ ntuple->Branch("phot_yStart", &phot_yStart);
+ ntuple->Branch("phot_zStart", &phot_zStart);
+
+
+ ntuple->Branch("pair_Run", &pair_Run, "pair_Run/I");
+ ntuple->Branch("pair_Event", &pair_Event, "pair_Event/I");
+ ntuple->Branch("pair_TrackID", &pair_TrackID, "pair_TrackID/I");
+ ntuple->Branch("pair_numPhotons", &pair_numPhotons);
+ ntuple->Branch("pair_energy", &pair_energy);
+ ntuple->Branch("pair_tStart", &pair_tStart);
+ ntuple->Branch("pair_xStart", &pair_xStart);
+ ntuple->Branch("pair_yStart", &pair_yStart);
+ ntuple->Branch("pair_zStart", &pair_zStart);
+
+
+ ntuple->Branch("ebrem_Run", &ebrem_Run, "ebrem_Run/I");
+ ntuple->Branch("ebrem_Event", &ebrem_Event, "ebrem_Event/I");
+ ntuple->Branch("ebrem_TrackID", &ebrem_TrackID, "ebrem_TrackID/I");
+ ntuple->Branch("ebrem_numPhotons", &ebrem_numPhotons);
+ ntuple->Branch("ebrem_energy", &ebrem_energy);
+ ntuple->Branch("ebrem_tStart", &ebrem_tStart);
+ ntuple->Branch("ebrem_xStart", &ebrem_xStart);
+ ntuple->Branch("ebrem_yStart", &ebrem_yStart);
+ ntuple->Branch("ebrem_zStart", &ebrem_zStart);
+
+
+
+ // Loop over map, write each entry to output ntuple. 
+
+ for ( auto i = compt_hitMap.begin(); i!= compt_hitMap.end(); ++i )
+   {
+     auto key = (*i).first;
+     Run = std::get<0>(key);
+     Event = std::get<1>(key);
+     TrackID = std::get<2>(key);
+
+     auto &vectors = (*i).second;
+     PDGCode = vectors.PDGCode;
+     numPhotons = vectors.numPhotons;
+     energy = vectors.energy;
+     tStart = vectors.tStart;
+     xStart = vectors.xStart;
+     yStart = vectors.yStart;
+     zStart = vectors.zStart;
+     tEnd = vectors.tEnd;
+     xEnd = vectors.xEnd;
+     yEnd = vectors.yEnd;
+     zEnd = vectors.zEnd;
+     identifier = vectors.identifier;
+
+     ntuple->Fill();
+   }
+
+ ntuple->Write();
+ output->Close();
+}
