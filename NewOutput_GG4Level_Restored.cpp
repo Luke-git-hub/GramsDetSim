@@ -31,7 +31,7 @@ int main( int argc, char** argv ) {
 
   // Define map:
 
-  typedef std::map< std::tuple< int , int , int >, std::string > trackMap_t;
+  typedef std::map< std::tuple< int , int , int, int >, std::string > trackMap_t;
 
   // Define trackMap:
 
@@ -53,8 +53,9 @@ int main( int argc, char** argv ) {
 		    {
 		      std::string processName;
 		      for ( auto i = process.begin(); 
-			    i!= process.end() && (*i) !=0; ++i)
+			    i!= process.end() && (*i) !=0; ++i){
 			processName.push_back(*i);
+		      }
 		      trackMap[{run,event,trackID,parentID}] = processName;
 		    },
 		     
@@ -72,25 +73,99 @@ int main( int argc, char** argv ) {
     } // loop over track
   } // if debug
 
-  // Create trackMapPri to hold the trackInfoPri information:
-  trackMap_t trackMapPri;
+  // // Define a map that takes run, event, trackID and parentID and maps to a vector containing the rest of the primary information:
+  // // Is this even necessary? See below... ********************************************************************************************
+  // typedef std::map< std::tuple< int, int, int, int>, std::vector< std::string, //processName
+  // 								  double, // energy
+  // 								  double, // x
+  // 								  double, // y
+  // 								  double, // z 
+  // 								  double, // t
+  // 								  double, // px
+  // 								  double, // py
+  // 								  double // pz
+  // 								  >> trackVectorMap_t;
 
-  // Create trackInfoPri, which contains the TrackInfo entries necessary for the pri_ variables
-  ROOT::RDataFrame trackInfoPri( "TrackInfo", filename);
-  [&trackMapPri]( int run, 
-		  int event, 
-		  int trackID, 
-		  int parentID,
-		  ROOT::VecOps::RVec<char> process, 
-		  double energy, 
-		  ROOT::VecOps::RVec<double> x, 
-		  ROOT::VecOps::RVec<double> y, 
-		  ROOT::VecOps::RVec<double> z, 
-		  ROOT::VecOps::RVec<double> t, 
-		  ROOT::VecOps::RVec<double> px, 
-		  ROOT::VecOps::RVec<double> py, 
-		  ROOT::VecOps::RVec<double>  pz)
 
+
+  // // Create trackMapPri to hold the trackInfoPri information:
+  // trackVectorMap_t trackMapPri;
+
+  // // Create trackInfoPri, which contains the TrackInfo entries necessary for the pri_ variables
+  // ROOT::RDataFrame trackInfoPri( "TrackInfo", filename);
+  // trackInfoPri.Foreach(
+  // [&trackMapPri]( int run, 
+  // 		  int event, 
+  // 		  int trackID, 
+  // 		  int parentID,
+  // 		  ROOT::VecOps::RVec<char> process, 
+  // 		  double energy, 
+  // 		  ROOT::VecOps::RVec<double> xPos, 
+  // 		  ROOT::VecOps::RVec<double> yPos, 
+  // 		  ROOT::VecOps::RVec<double> zPos, 
+  // 		  ROOT::VecOps::RVec<double> time, 
+  // 		  ROOT::VecOps::RVec<double> Px, 
+  // 		  ROOT::VecOps::RVec<double> Py, 
+  // 		  ROOT::VecOps::RVec<double> Pz)
+  // {
+  //   std::string processName;
+  //   double x;
+  //   double y;
+  //   double z;
+  //   double t;
+  //   double px;
+  //   double py;
+  //   double px;
+  //   for ( auto i = process.begin();
+  // 	  i!= process.end() && (*i) != 0; ++i){
+  //     processName.push_back(*i);
+  //   }
+  //   for ( auto i = xPos.begin();
+  // 	  i! = xPos.end() && (*i) != 0; ++i){
+  // 	    x.push_back(*i);
+  // 	  }
+  //   for ( auto i = yPos.begin();
+  //         i! = yPos.end() && (*i) != 0; ++i){
+  //     y.push_back(*i);
+  //   }
+  //   for ( auto i = zPos.begin();
+  //         i! = zPos.end() && (*i) != 0; ++i){
+  //     z.push_back(*i);
+  //   }
+  //   for ( auto i = time.begin();
+  //         i! = time.end() && (*i) != 0; ++i){
+  //     t.push_back(*i);
+  //   }
+  //   for ( auto i = Px.begin();
+  //         i! = Px.end() && (*i) != 0; ++i){
+  //     px.push_back(*i);
+  //   }
+  //   for ( auto i = Py.begin();
+  //         i! = Py.end() && (*i) != 0; ++i){
+  //     y.push_back(*i);
+  //   }
+  //   for ( auto i = Pz.begin();
+  //         i! = Pz.end() && (*i) != 0; ++i){
+  //     pz.push_back(*i);
+  //   }
+
+  //   trackMap[{run,event,trackID,parentID}] = (processName, energy, x, y, z, t, px, py, pz);
+  // },
+  // // need to figure out format here ****************************************************************************************
+
+  //   {"Run", "Event", "TrackID", "ParentID", "ProcessName", "x", "y", "z", "t", "px", "py", "pz" }
+
+  //);
+
+  // Filter Primary rows from TrackInfo:
+ROOT::RDataFrame trackInfoAll( "TrackInfo", filename );
+ auto priInfo = trackInfoAll.Filter( 
+   [&trackMap](int run, int event, int trackID, int parentID)
+   {
+     return trackMap[{Run, Event, TrackID, ParentID}] == "Primary";
+   },
+   {"Run", "Event", "TrackID", "ParentID" }
+				     );
 
   // Filter Compton rows from LArHits: 
 
@@ -147,17 +222,29 @@ typedef struct hitVectors
 	 std::vector<double> yStart;
 	 std::vector<double> zStart;
 	 // need energies here *************************************************
-	 // need to add ParentID (make it part of the map above!)  ***********************************************
+
 } hitInfo;
 
-typedef trackVectors
+// I don't think these actually have to be vectors but I don't want to rock the boat for now -- I'll streamline it later ***********************
+// trackVectors has a different structure: 
+
+typedef struct trackVectors
 {
-  doubl
-    }
+  std::vector<double> energy;
+  std::vector<double> x;
+  std::vector<double> y; 
+  std::vector<double> z;
+  std::vector<double> t;
+  std::vector<double> px;
+  std::vector<double> py;
+  std::vector<double> pz;
+      
+} trackInfoVect;
 
     typedef  std::map< std::tuple< int, int, int, int >, hitInfo > hitMap;
+    typedef  std::map< std::tuple< int, int, int, int >, trackInfoVect > priHitMap;
 
- hitMap pri_hitMap;
+ priHitMap pri_hitMap;
  hitMap compt_hitMap;
  hitMap phot_hitMap;
  hitMap pair_hitMap;
@@ -167,7 +254,52 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 
  hitMapVect combinedVector;
 
+ // Include Primary TrackInfo in pri_hitMap:
 
+ priInfo.Foreach(
+    [&pri_hitMap](
+     	       int run,
+	       int event, 
+	       int trackID, 
+	       int parentID, 
+	       int energy, 
+	       int x, 
+	       int y, 
+	       int z, 
+	       int t, 
+	       int px, 
+	       int py, 
+	       int pz
+		  )
+    {
+      auto &hit= pri_hitMap[{run, event, trackID, parentID}];
+
+      hit.energy.push_back( energy );
+      hit.x.push_back( x );
+      hit.y.push_back( y );
+      hit.z.push_back( z );
+      hit.t.push_back( t );
+      hit.px.push_back( px );
+      hit.py.push_back( py );
+      hit.pz.push_back( pz );
+    },
+
+    // list ntuple columns:
+
+    {   "run", 
+	"event", 
+	"trackID", 
+	"parentID", 
+	"energy", 
+	"x", 
+	"y", 
+	"z", 
+	"t", 
+	"px", 
+	"py", 
+	"pz"
+	}
+		 );
 
  // Include Compton-induced hits in compt_hitMap:
 
@@ -176,6 +308,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      int run, 
 	      int event,
 	      int trackID,
+	      int parentID,
 	      int numPhotons, 
 	      double energy, 
 	      double tStart, 
@@ -184,8 +317,8 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      double zStart 
 )
      { // Copy the address of the struct. pointed to by run/event/trackID
-       auto &hit = compt_hitMap[{run, event, trackID}];
-       // "Define the address of hit as hitMap[{run, event, trackID}] 	    
+       auto &hit = compt_hitMap[{run, event, trackID, parentID}];
+       // "Define the address of hit as hitMap[{run, event, trackID, parentID}] 	    
 
 	   
        // Append all the info in this ntuple row to the hitInfo vectors:
@@ -202,6 +335,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
     {   "run",
 	"event", 
 	"trackID", 
+	"parentID",
 	 "numPhotons", 
 	 "energy", 
 	 "tStart", 
@@ -217,6 +351,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      int run,
 	      int event,
 	      int trackID,  
+	      int parentID, 	      
 	      int numPhotons,
       	      double energy,
 	      double tStart
@@ -226,8 +361,8 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      )
 
 { // Copy the address of the struct. pointed to by run/event/trackID
-  auto &hit = phot_hitMap[{run, event, trackID}];
- // "Define the address of hit as hitMap[{run, event, trackID}]
+  auto &hit = phot_hitMap[{run, event, trackID, parentID}];
+ // "Define the address of hit as hitMap[{run, event, trackID, parentID}]
 
  // Append all the info in this ntuple row to the hitInfo vectors:
   hit.numPhotons.push_back( numPhotons );
@@ -243,6 +378,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
     {   "Run",
 	"Event",
 	"TrackID",
+	"ParentID",
 	"numPhotons",
 	"energy",
 	"tStart",
@@ -256,6 +392,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   [&pair_hitMap]( int run,
 		  int event,
 	     	  int trackID,
+		  int parentID, 
 	      	  int numPhotons,
       		  double energy,
                   double tStart
@@ -265,8 +402,8 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	          )
  
  { // Copy the address of the struct. pointed to by run/event/trackID
-   auto &hit = pair_hitMap[{run, event, trackID}];
- // "Define the address of hit as hitMap[{run, event, trackID}]
+   auto &hit = pair_hitMap[{run, event, trackID, parentID}];
+ // "Define the address of hit as hitMap[{run, event, trackID, parentID}]
 
  // Append all the info in this ntuple row to the hitInfo vectors:
    hit.numPhotons.push_back( numPhotons );
@@ -282,6 +419,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   {   "Run",
       "Event",
       "TrackID",
+      "ParentID",
       "numPhotons",
       "energy",
       "tStart",
@@ -295,6 +433,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   [&ebrem_hitMap](int run,
     		  int event,
       		  int trackID,
+		  int parentID, 
 	       	  int numPhotons,
 	       	  double energy,
                   double tStart
@@ -305,9 +444,9 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 
 
   { // Copy the address of the struct. pointed to by run/event/trackID
-    auto &hit = ebrem_hitMap[{run, event, trackID}];
+    auto &hit = ebrem_hitMap[{run, event, trackID, parentID}];
 
-    // "Define the address of hit as hitMap[{run, event, trackID}]
+    // "Define the address of hit as hitMap[{run, event, trackID, parentID}]
 
     // Append all the info in this ntuple row to the hitInfo vectors:
    
@@ -324,6 +463,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   {   "Run",
       "Event",
       "TrackID",
+      "ParentID", 
       "numPhotons",
       "energy",
       "tStart",
@@ -348,16 +488,20 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  TTree* ntuple = new TTree("comptonNtuple", "Energy deposited in Compton scattering");
 
  // Define the variables to be accessed: 
-
- int Run;
- int Event;
- double pri_xStart;
- double pri_yStart;
- double pri_zStart;
- double pri_tStart;
- double pri_px;
- double pri_py;
- double pri_pz;
+ // Again, don't think the pri ones need to be vectors but I will address that later
+ // Also, I may change some of the variable names to make things easier
+ int pri_Run;
+ int pri_Event;
+ int pri_TrackID;
+ int pri_ParentID;
+ std::vector<double> pri_energy;
+ std::vector<double> pri_x;
+ std::vector<double> pri_y;
+ std::vector<double> pri_z;
+ std::vector<double> pri_t;
+ std::vector<double> pri_px;
+ std::vector<double> pri_py;
+ std::vector<double> pri_pz;
 
 
  int compt_Run;
@@ -413,16 +557,19 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 
 
  // Assign each variable to its own branch:
-
- ntuple->Branch("Run", &Run, "Run/I");
- ntuple->Branch("Event", &Event, "Event/I");
- ntuple->Branch("pri_xStart", &pri_xStart, "pri_xStart/D");
- ntuple->Branch("pri_yStart", &pri_yStart, "pri_yStart/D");
- ntuple->Branch("pri_zStart", &pri_zStart, "pri_zStart/D");
- ntuple->Branch("pri_tStart", &pri_tStart, "pri_tStart/D");
- ntuple->Branch("pri_px", &pri_px, "pri_px/D");
- ntuple->Branch("pri_py", &pri_py, "pri_py/D");
- ntuple->Branch("pri_pz", &pri_pz, "pri_pz/D");
+ // Again-again, I will change the pri stuff once I get this to work and may change some variable names
+ ntuple->Branch("pri_Run", &pri_Run, "pri_Run/I");
+ ntuple->Branch("pri_Event", &pri_Event, "pri_Event/I");
+ ntuple->Branch("pri_TrackID", &pri_TrackID, "pri_TrackID/I");
+ ntuple->Branch("pri_ParentID", &pri_ParentID, "pri_ParentID/I");
+ ntuple->Branch("pri_energy", &pri_energy);
+ ntuple->Branch("pri_x", &pri_x);
+ ntuple->Branch("pri_y", &pri_y);
+ ntuple->Branch("pri_z", &pri_z);
+ ntuple->Branch("pri_t", &pri_t);
+ ntuple->Branch("pri_px", &pri_px);
+ ntuple->Branch("pri_py", &pri_py);
+ ntuple->Branch("pri_pz", &pri_pz);
 
  ntuple->Branch("compt_Run", &compt_Run, "compt_Run/I");
  ntuple->Branch("compt_Event", &compt_Event, "compt_Event/I");
@@ -484,9 +631,26 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  // Loop over map, write each entry to output ntuple. 
 
      if ( *j = 0 ) {
-       // primary info write-in goes here
-     }
+       for ( auto i = pri_hitMap.begin(); i!= pri_hitMap.end(); ++i ) 
+	 {
+	   auto key = (*i).first;
+	   pri_Run = std::get<0>(key);
+	   pri_Event = std::get<1>(key);
+	   pri_TrackID = std::get<2>(key);
+	   pri_ParentID = std::get<3>(key);
+       
+	   auto &vectors = (*i).second;
 
+	   pri_energy = vectors.energy;
+	   pri_x = vectors.x;
+	   pri_y = vectors.y;
+	   pri_z = vectors.z;
+	   pri_t = vectors.t;
+	   pri_px = vectors.px;
+	   pri_py = vectors.py;
+	   pri_pz = vectors.pz;
+     }
+       }
      if ( *j = 1 ) {
  for ( auto i = compt_hitMap.begin(); i!= compt_hitMap.end(); ++i )
    {
