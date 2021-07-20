@@ -229,7 +229,16 @@ auto ebrem_dEdx = ebremHits
 // Define photon energy:
 // As a filler I am assuming each photon has 1e-5 eV of energy
 auto compt_Ephot = comptonHits
-  .Define("compt_Ephot", "
+  .Define("compt_Ephot", "compt_numPhotons * 1e-5");
+
+auto phot_Ephot = photHits
+  .Define("phot_Ephot", "phot_numPhotons * 1e-5");
+
+auto pair_Ephot = pairHits
+  .Define("pair_Ephot", "pair_numPhotons * 1e-5");
+
+auto ebrem_Ephot = ebremHits
+  .Define("ebrem_Ephot", "ebrem_numPhotons * 1e-5");
 
 
 // Define ionization energy:
@@ -279,8 +288,8 @@ typedef struct trackVectors
       
 } trackInfoVect;
 
-    typedef  std::map< std::tuple< int, int, int, int >, hitInfo > hitMap;
-    typedef  std::map< std::tuple< int, int, int, int >, trackInfoVect > priHitMap;
+    typedef  std::map< std::tuple< int, int, int >, hitInfo > hitMap;
+    typedef  std::map< std::tuple< int, int, int >, trackInfoVect > priHitMap;
 
  priHitMap pri_hitMap;
  hitMap compt_hitMap;
@@ -288,7 +297,7 @@ typedef struct trackVectors
  hitMap pair_hitMap;
  hitMap ebrem_hitMap;
 
-typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
+typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
 
  hitMapVect combinedVector;
  // I need to figure out some way to get the parentID in here ***************************************************************
@@ -299,7 +308,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
      	       int run,
 	       int event, 
 	       int trackID, 
-	       int parentID, 
+	       //int parentID, 
 	       double energy, 
 	       double x, 
 	       double y, 
@@ -310,7 +319,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	       double pz
 		  )
     {
-      auto &hit= pri_hitMap[{run, event, trackID, parentID}];
+      auto &hit= pri_hitMap[{run, event, trackID}];
 
       hit.energy.push_back( energy );
       hit.x.push_back( x );
@@ -327,7 +336,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
     {   "run", 
 	"event", 
 	"trackID", 
-	"parentID", 
+	//"parentID", 
 	"energy", 
 	"x", 
 	"y", 
@@ -346,7 +355,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      int run, 
 	      int event,
 	      int trackID,
-	      int parentID,
+	      //    int parentID,
 	      int numPhotons, 
 	      double energy, 
 	      double tStart, 
@@ -357,7 +366,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      double Ephot 
 )
      { // Copy the address of the struct. pointed to by run/event/trackID
-       auto &hit = compt_hitMap[{run, event, trackID, parentID}];
+       auto &hit = compt_hitMap[{run, event, trackID}];
        // "Define the address of hit as hitMap[{run, event, trackID, parentID}] 	    
 
 	   
@@ -377,7 +386,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
     {   "run",
 	"event", 
 	"trackID", 
-	"parentID",
+	//"parentID",
         "numPhotons", 
         "energy", 
         "tStart", 
@@ -395,7 +404,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      int run,
 	      int event,
 	      int trackID,  
-	      int parentID, 	      
+	      //    int parentID, 	      
 	      int numPhotons,
       	      double energy,
 	      double tStart
@@ -407,7 +416,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	      )
 
 { // Copy the address of the struct. pointed to by run/event/trackID
-  auto &hit = phot_hitMap[{run, event, trackID, parentID}];
+  auto &hit = phot_hitMap[{run, event, trackID}];
  // "Define the address of hit as hitMap[{run, event, trackID, parentID}]
 
  // Append all the info in this ntuple row to the hitInfo vectors:
@@ -426,7 +435,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
     {   "Run",
 	"Event",
 	"TrackID",
-	"ParentID",
+	//	"ParentID",
 	"numPhotons",
 	"energy",
 	"tStart",
@@ -442,7 +451,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   [&pair_hitMap]( int run,
 		  int event,
 	     	  int trackID,
-		  int parentID, 
+		  //	  int parentID, 
 	      	  int numPhotons,
       		  double energy,
                   double tStart
@@ -454,7 +463,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
    )
  
  { // Copy the address of the struct. pointed to by run/event/trackID
-   auto &hit = pair_hitMap[{run, event, trackID, parentID}];
+   auto &hit = pair_hitMap[{run, event, trackID}];
  // "Define the address of hit as hitMap[{run, event, trackID, parentID}]
 
  // Append all the info in this ntuple row to the hitInfo vectors:
@@ -473,7 +482,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   {   "Run",
       "Event",
       "TrackID",
-      "ParentID",
+      //"ParentID",
       "numPhotons",
       "energy",
       "tStart",
@@ -489,7 +498,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   [&ebrem_hitMap](int run,
     		  int event,
       		  int trackID,
-		  int parentID, 
+		  //	  int parentID, 
 	       	  int numPhotons,
 	       	  double energy,
                   double tStart
@@ -502,7 +511,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 
 
   { // Copy the address of the struct. pointed to by run/event/trackID
-    auto &hit = ebrem_hitMap[{run, event, trackID, parentID}];
+    auto &hit = ebrem_hitMap[{run, event, trackID}];
 
     // "Define the address of hit as hitMap[{run, event, trackID, parentID}]
 
@@ -523,7 +532,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
   {   "Run",
       "Event",
       "TrackID",
-      "ParentID", 
+      //"ParentID", 
       "numPhotons",
       "energy",
       "tStart",
@@ -555,7 +564,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  int pri_Run;
  int pri_Event;
  int pri_TrackID;
- int pri_ParentID;
+ //int pri_ParentID;
  std::vector<double> pri_energy;
  std::vector<double> pri_x;
  std::vector<double> pri_y;
@@ -569,7 +578,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  int compt_Run;
  int compt_Event; 
  int compt_TrackID;
- int compt_ParentID;
+ //int compt_ParentID;
  int compt_quantity;
  std::vector<int> compt_numPhotons;
  std::vector<double> compt_energy;
@@ -583,7 +592,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  int phot_Run;
  int phot_Event;
  int phot_TrackID;
- int phot_ParentID;
+ //int phot_ParentID;
  int phot_quantity;
  std::vector<int> phot_numPhotons;
  std::vector<double> phot_energy;
@@ -597,7 +606,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  int pair_Run;
  int pair_Event;
  int pair_TrackID;
- int pair_ParentID;
+ //int pair_ParentID;
  int pair_quantity;
  std::vector<int> pair_numPhotons;
  std::vector<double> pair_energy;
@@ -611,7 +620,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  int ebrem_Run;
  int ebrem_Event;
  int ebrem_TrackID;
- int ebrem_ParentID;
+ //int ebrem_ParentID;
  int ebrem_quantity;
  std::vector<int> ebrem_numPhotons;
  std::vector<double> ebrem_energy;
@@ -628,7 +637,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  ntuple->Branch("pri_Run", &pri_Run, "pri_Run/I");
  ntuple->Branch("pri_Event", &pri_Event, "pri_Event/I");
  ntuple->Branch("pri_TrackID", &pri_TrackID, "pri_TrackID/I");
- ntuple->Branch("pri_ParentID", &pri_ParentID, "pri_ParentID/I");
+ // ntuple->Branch("pri_ParentID", &pri_ParentID, "pri_ParentID/I");
  ntuple->Branch("pri_energy", &pri_energy);
  ntuple->Branch("pri_x", &pri_x);
  ntuple->Branch("pri_y", &pri_y);
@@ -641,7 +650,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  ntuple->Branch("compt_Run", &compt_Run, "compt_Run/I");
  ntuple->Branch("compt_Event", &compt_Event, "compt_Event/I");
  ntuple->Branch("compt_TrackID", &compt_TrackID, "compt_TrackID/I");
- ntuple->Branch("compt_ParentID", &compt_ParentID, "compt_ParentID/I");
+ //ntuple->Branch("compt_ParentID", &compt_ParentID, "compt_ParentID/I");
  ntuple->Branch("compt_quantity", &compt_quantity, "compt_quantity/I");
  ntuple->Branch("compt_numPhotons", &compt_numPhotons);
  ntuple->Branch("compt_energy", &compt_energy);
@@ -656,7 +665,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  ntuple->Branch("phot_Run", &phot_Run, "phot_Run/I");
  ntuple->Branch("phot_Event", &phot_Event, "phot_Event/I");
  ntuple->Branch("phot_TrackID", &phot_TrackID, "phot_TrackID/I");
- ntuple->Branch("phot_ParentID", &phot_ParentID, "phot_ParentID/I");
+ // ntuple->Branch("phot_ParentID", &phot_ParentID, "phot_ParentID/I");
  ntuple->Branch("phot_quantity", &phot_quantity, "phot_quantity/I");
  ntuple->Branch("phot_numPhotons", &phot_numPhotons);
  ntuple->Branch("phot_energy", &phot_energy);
@@ -671,7 +680,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  ntuple->Branch("pair_Run", &pair_Run, "pair_Run/I");
  ntuple->Branch("pair_Event", &pair_Event, "pair_Event/I");
  ntuple->Branch("pair_TrackID", &pair_TrackID, "pair_TrackID/I");
- ntuple->Branch("pair_ParentID", &pair_ParentID, "pair_ParentID/I");
+ //ntuple->Branch("pair_ParentID", &pair_ParentID, "pair_ParentID/I");
  ntuple->Branch("pair_quantity", &pair_quantity, "pair_quantity/I");
  ntuple->Branch("pair_numPhotons", &pair_numPhotons);
  ntuple->Branch("pair_energy", &pair_energy);
@@ -686,7 +695,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
  ntuple->Branch("ebrem_Run", &ebrem_Run, "ebrem_Run/I");
  ntuple->Branch("ebrem_Event", &ebrem_Event, "ebrem_Event/I");
  ntuple->Branch("ebrem_TrackID", &ebrem_TrackID, "ebrem_TrackID/I");
- ntuple->Branch("ebrem_ParentID", &ebrem_ParentID, "ebrem_ParentID/I");
+ // ntuple->Branch("ebrem_ParentID", &ebrem_ParentID, "ebrem_ParentID/I");
  ntuple->Branch("ebrem_quantity", &ebrem_quantity, "ebrem_quantity/I");
  ntuple->Branch("ebrem_numPhotons", &ebrem_numPhotons);
  ntuple->Branch("ebrem_energy", &ebrem_energy);
@@ -713,7 +722,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
 	   pri_Run = std::get<0>(key);
 	   pri_Event = std::get<1>(key);
 	   pri_TrackID = std::get<2>(key);
-	   pri_ParentID = std::get<3>(key);
+	   //	   pri_ParentID = std::get<3>(key);
        
 	   auto &vectors = (*i).second;
 
@@ -734,7 +743,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
      compt_Run = std::get<0>(key);
      compt_Event = std::get<1>(key);
      compt_TrackID = std::get<2>(key);
-     compt_ParentID = std::get<3>(key);
+     // compt_ParentID = std::get<3>(key);
 
      auto &vectors = (*i).second;
      
@@ -759,7 +768,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
      phot_Run = std::get<0>(key);
      phot_Event = std::get<1>(key);
      phot_TrackID = std::get<2>(key);
-     phot_ParentID = std::get<3>(key);
+     //  phot_ParentID = std::get<3>(key);
 
      auto &vectors = (*i).second;
 
@@ -782,7 +791,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
      pair_Run = std::get<0>(key);
      pair_Event = std::get<1>(key);
      pair_TrackID = std::get<2>(key);
-     pair_ParentID = std::get<3>(key);
+     // pair_ParentID = std::get<3>(key);
 
      auto &vectors = (*i).second;
 
@@ -808,7 +817,7 @@ typedef std::vector< hitMap, hitMap, hitMap, hitMap, hitMap > hitMapVect;
      ebrem_Run = std::get<0>(key);
      ebrem_Event = std::get<1>(key);
      ebrem_TrackID = std::get<2>(key);
-     ebrem_ParentID = std::get<3>(key);
+     // ebrem_ParentID = std::get<3>(key);
 
      auto &vectors = (*i).second;
 
