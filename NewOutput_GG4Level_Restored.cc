@@ -226,34 +226,40 @@ auto ebrem_dEdx = ebremHits
   .Define("ebrem_dx","sqrt(pow(xStart-xEnd,2) + pow(yStart-yEnd,2) + pow(zStart-zEnd,2))")
   .Define("ebrem_dEdx","energy / ebrem_dx");
 
+// Add dEdx to each map:
+
+ compt_dEdx.foreach(
+ [ &comptHits
+
+
 // Define photon energy:
 // As a filler I am assuming each photon has 1e-5 eV of energy
-auto compt_Ephot = comptonHits
-  .Define("compt_Ephot", "compt_numPhotons * 1e-5");
+//auto compt_Ephot = comptonHits
+//.Define("compt_Ephot", "compt_numPhotons * 1e-5");
 
-auto phot_Ephot = photHits
-  .Define("phot_Ephot", "phot_numPhotons * 1e-5");
+//auto phot_Ephot = photHits
+// .Define("phot_Ephot", "phot_numPhotons * 1e-5");
 
-auto pair_Ephot = pairHits
-  .Define("pair_Ephot", "pair_numPhotons * 1e-5");
+//auto pair_Ephot = pairHits
+//.Define("pair_Ephot", "pair_numPhotons * 1e-5");
 
-auto ebrem_Ephot = ebremHits
-  .Define("ebrem_Ephot", "ebrem_numPhotons * 1e-5");
+//auto ebrem_Ephot = ebremHits
+//.Define("ebrem_Ephot", "ebrem_numPhotons * 1e-5");
 
 
 // Define ionization energy:
 
-auto compt_Eion = comptonHits
-  .Define("compt_Eion", "(energy / compt_dx) - compt_Ephot");
+//auto compt_Eion = comptonHits
+//.Define("compt_Eion", "(energy / compt_dx) - compt_Ephot");
 
-auto phot_Eion = photHits
-  .Define("phot_Eion", "(energy / phot_dx) - phot_Ephot");
+//auto phot_Eion = photHits
+// .Define("phot_Eion", "(energy / phot_dx) - phot_Ephot");
 
-auto pair_Eion = pairHits
-  .Define("pair_Eion", "(energy / pair_dx) - pair_Ephot");
+//auto pair_Eion = pairHits
+//.Define("pair_Eion", "(energy / pair_dx) - pair_Ephot");
 
-auto ebrem_Eion = ebremHits
-  .Define("ebrem_Eion", "(energy / ebrem_dx) - ebrem_Ephot");
+//auto ebrem_Eion = ebremHits
+//.Define("ebrem_Eion", "(energy / ebrem_dx) - ebrem_Ephot");
 
 
 
@@ -267,8 +273,9 @@ typedef struct hitVectors
 	 std::vector<double> xStart;
 	 std::vector<double> yStart;
 	 std::vector<double> zStart;
-	 std::vector<double> Eion;
-	 std::vector<double> Ephot;
+	 //	 std::vector<double> Eion;
+	 //std::vector<double> Ephot;
+	 std::vector<double> dEdx;
 
 } hitInfo;
 
@@ -297,14 +304,14 @@ typedef struct trackVectors
  hitMap pair_hitMap;
  hitMap ebrem_hitMap;
 
-typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
+ typedef std::vector<hitMap> hitMapVect;
 
  hitMapVect combinedVector;
  // I need to figure out some way to get the parentID in here ***************************************************************
  // Include Primary TrackInfo in pri_hitMap:
  // Need to check if I can add Ephot and Eion directly to the hitmap here in the same way as the other variables ************
  priInfo.Foreach(
-    [&pri_hitMap](
+   [&pri_hitMap](
      	       int run,
 	       int event, 
 	       int trackID, 
@@ -351,7 +358,7 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  // Include Compton-induced hits in compt_hitMap:
 
  comptonHits.Foreach(
-    [&compt_hitMap](
+		     [&compt_hitMap, &compt_dEdx](
 	      int run, 
 	      int event,
 	      int trackID,
@@ -362,8 +369,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
 	      double xStart, 
 	      double yStart, 
 	      double zStart, 
-	      double Eion, 
-	      double Ephot 
+	      //double Eion, 
+	      //double Ephot
+	      double dEdx 
 )
      { // Copy the address of the struct. pointed to by run/event/trackID
        auto &hit = compt_hitMap[{run, event, trackID}];
@@ -377,8 +385,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
        hit.xStart.push_back( xStart );
        hit.yStart.push_back( yStart );
        hit.zStart.push_back( zStart );
-       hit.Eion.push_back( compt_Eion );
-       hit.Ephot.push_back( compt_Ephot );
+       // hit.Eion.push_back( compt_Eion );
+       // hit.Ephot.push_back( compt_Ephot );
+       hit.dEdx.push_back( compt_dEdx );
      },
 
 
@@ -393,14 +402,15 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
 	"xStart", 
 	"yStart", 
 	"zStart", 
-	"Eion", 
-	"Ephot"
+	//"Eion", 
+	//"Ephot"
+	"dEdx"
        
 	 }
      );
 
  photHits.Foreach(
-   [&phot_hitMap](
+		  [&phot_hitMap, &phot_dEdx](
 	      int run,
 	      int event,
 	      int trackID,  
@@ -411,8 +421,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
 	      double xStart,
 	      double yStart,
 	      double zStart,
-	      double Eion, 
-	      double Ephot
+	      //      double Eion, 
+	      //double Ephot
+	      double dEdx
 	      )
 
 { // Copy the address of the struct. pointed to by run/event/trackID
@@ -426,8 +437,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
   hit.xStart.push_back( xStart );
   hit.yStart.push_back( yStart );
   hit.zStart.push_back( zStart );
-  hit.Eion.push_back( phot_Eion );
-  hit.Ephot.push_back( phot_Ephot ); 
+  //hit.Eion.push_back( phot_Eion );
+  //hit.Ephot.push_back( phot_Ephot );
+  hit.dEdx.push_back( phot_dEdx ); 
 },
 
 
@@ -442,13 +454,14 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
 	"xStart",
 	"yStart",
 	"zStart",
-	"Eion", 
-	"Ephot"
+	//"Eion", 
+	//"Ephot"
+	"dEdx"
 	}
 		  );
 
  pairHits.Foreach(
-  [&pair_hitMap]( int run,
+		  [&pair_hitMap, &pair_dEdx]( int run,
 		  int event,
 	     	  int trackID,
 		  //	  int parentID, 
@@ -458,8 +471,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
 	       	  double xStart,
 		  double yStart,
 		  double zStart,
-		  double Eion, 
-		  double Ephot, 	       
+		  //	  double Eion, 
+		  //double Ephot,
+		  double dEdx
    )
  
  { // Copy the address of the struct. pointed to by run/event/trackID
@@ -473,8 +487,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
    hit.xStart.push_back( xStart );
    hit.yStart.push_back( yStart );
    hit.zStart.push_back( zStart );
-   hit.Eion.push_back( Eion );
-   hit.Ephot.push_back( Ephot );
+   //hit.Eion.push_back( pair_Eion );
+   //hit.Ephot.push_back( pair_Ephot );
+   hit.dEdx.push_back( pair_dEdx );
  },
 
 
@@ -489,13 +504,14 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
       "xStart",
       "yStart",
       "zStart",
-      "Eion", 
-      "Ephot"
+      // "Eion", 
+      //"Ephot"
+      "dEdx"
       }
 		  );
 
- pairHits.Foreach(
-  [&ebrem_hitMap](int run,
+ ebremHits.Foreach(
+		   [&ebrem_hitMap, &ebrem_dEdx](int run,
     		  int event,
       		  int trackID,
 		  //	  int parentID, 
@@ -505,8 +521,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
 	          double xStart,
 		  double yStart,
 	          double zStart,
-		  double Eion, 
-		  double Ephot
+		  //	  double Eion, 
+		  // double Ephot
+		  double dEdx
 		  )
 
 
@@ -523,8 +540,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
     hit.xStart.push_back( xStart );
     hit.yStart.push_back( yStart );
     hit.zStart.push_back( zStart );
-    hit.Eion.push_back( Eion );
-    hit.Ephot.push_back( Ephot );
+    // hit.Eion.push_back( ebrem_Eion );
+    // hit.Ephot.push_back( ebrem_Ephot );
+    hit.dEdx.push_back( ebrem_dEdx );
   },
 
 
@@ -539,8 +557,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
       "xStart",
       "yStart",
       "zStart", 
-      "Eion", 
-      "Ephot"
+      //"Eion", 
+      //"Ephot"
+      "dEdx"
       }
                   );
 
@@ -556,7 +575,7 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  // Create the new output ntuple: 
 
  TFile* output = new TFile(outputfile.c_str(), "RECREATE");
- TTree* ntuple = new TTree("comptonNtuple", "Energy deposited in Compton scattering");
+ TTree* ntuple = new TTree("GG4Level", "GramsG4 level new output format");
 
  // Define the variables to be accessed: 
  // Again, don't think the pri ones need to be vectors but I will address that later
@@ -586,8 +605,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  std::vector<double> compt_xStart;
  std::vector<double> compt_yStart;
  std::vector<double> compt_zStart;
- std::vector<double> compt_Eion;
- std::vector<double> compt_Ephot;
+ //std::vector<double> compt_Eion;
+ //std::vector<double> compt_Ephot;
+ std::vector<double> compt_dEdx;
 
  int phot_Run;
  int phot_Event;
@@ -600,8 +620,10 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  std::vector<double> phot_xStart;
  std::vector<double> phot_yStart;
  std::vector<double> phot_zStart;
- std::vector<double> phot_Eion;
- std::vector<double> phot_Ephot;
+ // std::vector<double> phot_Eion;
+ //std::vector<double> phot_Ephot;
+ std::vector<double> phot_dEdx;
+
 
  int pair_Run;
  int pair_Event;
@@ -614,8 +636,10 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  std::vector<double> pair_xStart;
  std::vector<double> pair_yStart;
  std::vector<double> pair_zStart;
- std::vector<double> pair_Eion;
- std::vector<double> pair_Ephot;
+ //std::vector<double> pair_Eion;
+ //std::vector<double> pair_Ephot;
+ std::vector<double> pair_dEdx;
+
 
  int ebrem_Run;
  int ebrem_Event;
@@ -628,8 +652,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  std::vector<double> ebrem_xStart;
  std::vector<double> ebrem_yStart;
  std::vector<double> ebrem_zStart;
- std::vector<double> ebrem_Eion;
- std::vector<double> ebrem_Ephot;
+ // std::vector<double> ebrem_Eion;
+ // std::vector<double> ebrem_Ephot;
+ std::vector<double> ebrem_dEdx;
 
 
  // Assign each variable to its own branch:
@@ -658,9 +683,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  ntuple->Branch("compt_xStart", &compt_xStart);
  ntuple->Branch("compt_yStart", &compt_yStart);
  ntuple->Branch("compt_zStart", &compt_zStart);
- ntuple->Branch("compt_Eion", &compt_Eion);
- ntuple->Branch("compt_Ephot", &compt_Ephot);
-
+ //ntuple->Branch("compt_Eion", &compt_Eion);
+ //ntuple->Branch("compt_Ephot", &compt_Ephot);
+ ntuple->Branch("compt_dEdx", &compt_dEdx);
 
  ntuple->Branch("phot_Run", &phot_Run, "phot_Run/I");
  ntuple->Branch("phot_Event", &phot_Event, "phot_Event/I");
@@ -673,9 +698,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  ntuple->Branch("phot_xStart", &phot_xStart);
  ntuple->Branch("phot_yStart", &phot_yStart);
  ntuple->Branch("phot_zStart", &phot_zStart);
- ntuple->Branch("phot_Eion", &phot_Eion);
- ntuple->Branch("phot_Ephot", &phot_Ephot);
-
+ //ntuple->Branch("phot_Eion", &phot_Eion);
+ //ntuple->Branch("phot_Ephot", &phot_Ephot);
+ ntuple->Branch("phot_dEdx", &phot_dEdx);
 
  ntuple->Branch("pair_Run", &pair_Run, "pair_Run/I");
  ntuple->Branch("pair_Event", &pair_Event, "pair_Event/I");
@@ -688,9 +713,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  ntuple->Branch("pair_xStart", &pair_xStart);
  ntuple->Branch("pair_yStart", &pair_yStart);
  ntuple->Branch("pair_zStart", &pair_zStart);
- ntuple->Branch("pair_Eion", &pair_Eion);
- ntuple->Branch("pair_Ephot", &pair_Ephot);
-
+ // ntuple->Branch("pair_Eion", &pair_Eion);
+ //ntuple->Branch("pair_Ephot", &pair_Ephot);
+ ntuple->Branch("pair_dEdx", &pair_dEdx);
 
  ntuple->Branch("ebrem_Run", &ebrem_Run, "ebrem_Run/I");
  ntuple->Branch("ebrem_Event", &ebrem_Event, "ebrem_Event/I");
@@ -703,9 +728,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
  ntuple->Branch("ebrem_xStart", &ebrem_xStart);
  ntuple->Branch("ebrem_yStart", &ebrem_yStart);
  ntuple->Branch("ebrem_zStart", &ebrem_zStart);
- ntuple->Branch("ebrem_Eion", &ebrem_Eion);
- ntuple->Branch("ebrem_Ephot", &ebrem_Ephot);
-
+ // ntuple->Branch("ebrem_Eion", &ebrem_Eion);
+ //ntuple->Branch("ebrem_Ephot", &ebrem_Ephot);
+ ntuple->Branch("ebrem_dEdx", &ebrem_dEdx);
 
  // For each entry in combinedVector... 
 
@@ -754,9 +779,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
      compt_xStart = vectors.xStart;
      compt_yStart = vectors.yStart;
      compt_zStart = vectors.zStart;
-     compt_Eion = vectors.Eion; 
-     compt_Ephot = vectors.Ephot;
-    
+     // compt_Eion = vectors.Eion; 
+     // compt_Ephot = vectors.Ephot;
+     compt_dEdx = vectors.dEdx;
    }
      }
 
@@ -779,9 +804,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
      phot_xStart = vectors.xStart;
      phot_yStart = vectors.yStart;
      phot_zStart = vectors.zStart;
-     phot_Eion = vectors.Eion;
-     phot_Ephot = vectors.Ephot;
-
+     //     phot_Eion = vectors.Eion;
+     // phot_Ephot = vectors.Ephot;
+     phot_dEdx = vectors.dEdx;
    }
      }
      if ( *j = 3 ) {
@@ -802,9 +827,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
      pair_xStart = vectors.xStart;
      pair_yStart = vectors.yStart;
      pair_zStart = vectors.zStart;
-     pair_Eion = vectors.Eion;
-     pair_Ephot = vectors.Ephot;
-
+     //     pair_Eion = vectors.Eion;
+     // pair_Ephot = vectors.Ephot;
+     pair_dEdx = vectors.dEdx;
      
    }
      }
@@ -828,8 +853,9 @@ typedef std::vector<hitMap, hitMap, hitMap, hitMap, hitMap> hitMapVect;
      ebrem_xStart = vectors.xStart;
      ebrem_yStart = vectors.yStart;
      ebrem_zStart = vectors.zStart;
-     ebrem_Eion = vectors.Eion;
-     ebrem_Ephot = vectors.Ephot;
+     // ebrem_Eion = vectors.Eion;
+     //ebrem_Ephot = vectors.Ephot;
+     ebrem_dEdx = vectors.dEdx;
 
    }
      }
