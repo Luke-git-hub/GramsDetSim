@@ -226,11 +226,41 @@ auto ebrem_dEdx = ebremHits
   .Define("ebrem_dx","sqrt(pow(xStart-xEnd,2) + pow(yStart-yEnd,2) + pow(zStart-zEnd,2))")
   .Define("ebrem_dEdx","energy / ebrem_dx");
 
-// Add dEdx to each map:
+// Assign each dEdx to the address (run, event, trackID)
 
- compt_dEdx.foreach(
- [ &comptHits
+ compt_dEdx.Foreach(
+		    [ &comptHits ]( int run, 
+				    int event, 
+				    int trackID)
+		    
+		    auto &compt_dEdx = ( run, event, trackID )
+		      
+);
 
+ phot_dEdx.Foreach(
+		   [ &photHits ]( int run, 
+				  int event, 
+				  int trackID)
+		   
+		   auto &phot_dEdx = (run, event, trackID)
+		     
+);
+
+ pair_dEdx.Foreach(
+		   [ &pairHits ]( int run, 
+				  int event, 
+				  int trackID)
+		   
+		     auto &pair_dEdx = (run, event, trackID) 
+
+		   );
+
+ ebrem_dEdx.Foreach(
+		    [ &ebremHits ](int run, 
+				   int event, 
+				   int trackID)
+		    auto &ebrem_dEdx = (run, event, trackID)
+		    );
 
 // Define photon energy:
 // As a filler I am assuming each photon has 1e-5 eV of energy
