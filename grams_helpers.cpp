@@ -21,8 +21,8 @@ double charge_recombination(double dEdx)
 // this modified box model is used because it works for all ranges of dE/dx as well as not having the technical difficulties that arise when applying the birks model to highly ionizing particles
 {
   double field; //electric field on the cloud of ionized particles, varies with position due to space charge, which we don't have a model for yet
-  double new_dEdx //since geant4's units gives dEdx as MeV/mm, we need to convert it to MeV/cm
-  new_dEdx = dEdx * 10
+  double new_dEdx; //since geant4's units gives dEdx as MeV/mm, we need to convert it to MeV/cm
+  new_dEdx = dEdx * 10;
   double a = 0.930; //average of the a value for 20 to 90 degrees angle bins for proton sample detection in ArgoNeuT, unitless value
   double b = 0.212; // average of the B value for 20 to 90 degrees angle bins for proton sample detection in ArgoNeuT, units of (kV*g)/(MeV*cm^3)
   double rho = 1.3973; //density of liquid argon, from brookhaven LAr page, units of (g/cm^3)
@@ -57,22 +57,7 @@ int main()
   std::string outputfile("gramsdetsim_recombination.root");
   //take in TTree and TFile from GramsDetSim
   ROOT::RDataFrame input_ntuple("GramsDetSim_ntuple", "NewOutput_GG4Level.root");
-  
-  //Alright, now let's calculate recombination. First we'll need some variables
-  double field; //electric field on the cloud of ionized particles, varies with position
-  double a = 0.930; //average of the a value for 20 to 90 degrees angle bins for proton sample detection in ArgoNeuT, unitless value
-  double b = 0.212; // average of the B value for 20 to 90 degrees angle bins for proton sample detection in ArgoNeuT, units of (kV*g)/(MeV*cm^3)
-  double rho = 1.3973; //density of liquid argon, from brookhaven LAr page, units of (g/cm^3)
-  double sigma; //multiple calculations for this are presented in the paper, we will be using eqn 8.1 to calculate sigma as it removes some dependencies
-  // ideally, we'll have a function for defining the electric field strength at points in the LArTPC. Until then, we'll have a field strength for the entire field  
-  double field = 1.0;
-  //now let's calculate recombination (how do I do that)
-  //also lucia might not be including ionization energy in her program so I'll need to calculate it
-  auto recombination = input_ntuple.Define("sigma","(b * dEdx) / (field * rho)").Define("recomb_rate", "log(a + sigma/sigma").Define("Energy_left = compt_Eion * recomb_rate");
-  
-  //need to process ntuple, pull out what I need
-  auto output = 0; //replace with way to combine inported ntuple with recombination
-  //return the output, either through copying Lucia's code or something else
+  auto output = 0; 
 }
 
 
