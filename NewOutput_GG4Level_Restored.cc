@@ -212,6 +212,7 @@ ROOT::RDataFrame trackInfoAll( "TrackInfo", filename );
   // I don't think I have to name all the dxs different things but I'll clean it up later **********************************************
 auto compt_dEdx = comptonHits
   .Define("compt_dx","sqrt(pow(xStart-xEnd,2) + pow(yStart-yEnd,2) + pow(zStart-zEnd,2))")
+  //  static const double small = 1.e-2
   .Define("compt_dEdx","energy / compt_dx");
 
 auto phot_dEdx = photHits
@@ -226,41 +227,52 @@ auto ebrem_dEdx = ebremHits
   .Define("ebrem_dx","sqrt(pow(xStart-xEnd,2) + pow(yStart-yEnd,2) + pow(zStart-zEnd,2))")
   .Define("ebrem_dEdx","energy / ebrem_dx");
 
+// Insert the (run, event, trackID):dEdx values into the map:
+
+// comptonHits.Foreach(
+//		     [&compt_dEdx]( double compt_dEdx )
+//		     {
+//		       comptonHits.insert({run
+
+
+
 // Assign each dEdx to the address (run, event, trackID)
 
- compt_dEdx.Foreach(
-		    [ &comptHits ]( int run, 
-				    int event, 
-				    int trackID)
-		    
-		    auto &compt_dEdx = ( run, event, trackID )
-		      
-);
+// compt_dEdx.Foreach(
+//		    [ &comptonHits ]( int run, 
+//				    int event, 
+//				    int trackID)
+//		    { 
+//		      auto &compt_dEdx = ( run, event, trackID );
+//		      }
+//);
 
- phot_dEdx.Foreach(
-		   [ &photHits ]( int run, 
-				  int event, 
-				  int trackID)
-		   
-		   auto &phot_dEdx = (run, event, trackID)
-		     
-);
+// phot_dEdx.Foreach(
+//		   [ &photHits ]( int run, 
+//				  int event, 
+//				  int trackID)
+//		   {
+//		     auto &phot_dEdx = (run, event, trackID);
+//		     } 
+//);
 
- pair_dEdx.Foreach(
-		   [ &pairHits ]( int run, 
-				  int event, 
-				  int trackID)
-		   
-		     auto &pair_dEdx = (run, event, trackID) 
-
-		   );
-
- ebrem_dEdx.Foreach(
-		    [ &ebremHits ](int run, 
-				   int event, 
-				   int trackID)
-		    auto &ebrem_dEdx = (run, event, trackID)
-		    );
+// pair_dEdx.Foreach(
+//		   [ &pairHits ]( int run, 
+//				  int event, 
+//				  int trackID)
+//		   {
+//		     auto &pair_dEdx = (run, event, trackID); 
+//		       }
+//		   );
+//
+// ebrem_dEdx.Foreach(
+//		    [ &ebremHits ](int run, 
+//				   int event, 
+//				   int trackID)
+//		    {
+//		      auto &ebrem_dEdx = (run, event, trackID);
+//		      }		    
+//);
 
 // Define photon energy:
 // As a filler I am assuming each photon has 1e-5 eV of energy
@@ -305,7 +317,7 @@ typedef struct hitVectors
 	 std::vector<double> zStart;
 	 //	 std::vector<double> Eion;
 	 //std::vector<double> Ephot;
-	 std::vector<double> dEdx;
+	 //std::vector<double> dEdx;
 
 } hitInfo;
 
@@ -336,10 +348,11 @@ typedef struct trackVectors
 
  typedef std::vector<hitMap> hitMapVect;
 
- hitMapVect combinedVector;
+
+ hitMapVect hitsVector;
  // I need to figure out some way to get the parentID in here ***************************************************************
  // Include Primary TrackInfo in pri_hitMap:
- // Need to check if I can add Ephot and Eion directly to the hitmap here in the same way as the other variables ************
+ 
  priInfo.Foreach(
    [&pri_hitMap](
      	       int run,
@@ -398,14 +411,14 @@ typedef struct trackVectors
 	      double tStart, 
 	      double xStart, 
 	      double yStart, 
-	      double zStart, 
+	      double zStart
 	      //double Eion, 
 	      //double Ephot
-	      double dEdx 
+	      //double dEdx 
 )
      { // Copy the address of the struct. pointed to by run/event/trackID
        auto &hit = compt_hitMap[{run, event, trackID}];
-       // "Define the address of hit as hitMap[{run, event, trackID, parentID}] 	    
+       // "Define the address of hit as hitMap[{run, event, trackID}] 	    
 
 	   
        // Append all the info in this ntuple row to the hitInfo vectors:
@@ -417,7 +430,7 @@ typedef struct trackVectors
        hit.zStart.push_back( zStart );
        // hit.Eion.push_back( compt_Eion );
        // hit.Ephot.push_back( compt_Ephot );
-       hit.dEdx.push_back( compt_dEdx );
+       // hit.dEdx.push_back( compt_dEdx );
      },
 
 
@@ -431,10 +444,10 @@ typedef struct trackVectors
         "tStart", 
 	"xStart", 
 	"yStart", 
-	"zStart", 
+	"zStart"
 	//"Eion", 
 	//"Ephot"
-	"dEdx"
+	//"dEdx"
        
 	 }
      );
@@ -447,13 +460,13 @@ typedef struct trackVectors
 	      //    int parentID, 	      
 	      int numPhotons,
       	      double energy,
-	      double tStart
+	      double tStart,
 	      double xStart,
 	      double yStart,
-	      double zStart,
+	      double zStart
 	      //      double Eion, 
 	      //double Ephot
-	      double dEdx
+	      //double dEdx
 	      )
 
 { // Copy the address of the struct. pointed to by run/event/trackID
@@ -469,7 +482,7 @@ typedef struct trackVectors
   hit.zStart.push_back( zStart );
   //hit.Eion.push_back( phot_Eion );
   //hit.Ephot.push_back( phot_Ephot );
-  hit.dEdx.push_back( phot_dEdx ); 
+  //hit.dEdx.push_back( phot_dEdx ); 
 },
 
 
@@ -483,10 +496,10 @@ typedef struct trackVectors
 	"tStart",
 	"xStart",
 	"yStart",
-	"zStart",
+	"zStart"
 	//"Eion", 
 	//"Ephot"
-	"dEdx"
+	//"dEdx"
 	}
 		  );
 
@@ -497,13 +510,13 @@ typedef struct trackVectors
 		  //	  int parentID, 
 	      	  int numPhotons,
       		  double energy,
-                  double tStart
+		  double tStart,
 	       	  double xStart,
 		  double yStart,
-		  double zStart,
+		  double zStart
 		  //	  double Eion, 
 		  //double Ephot,
-		  double dEdx
+		  //double dEdx
    )
  
  { // Copy the address of the struct. pointed to by run/event/trackID
@@ -519,7 +532,7 @@ typedef struct trackVectors
    hit.zStart.push_back( zStart );
    //hit.Eion.push_back( pair_Eion );
    //hit.Ephot.push_back( pair_Ephot );
-   hit.dEdx.push_back( pair_dEdx );
+   //hit.dEdx.push_back( pair_dEdx );
  },
 
 
@@ -533,10 +546,10 @@ typedef struct trackVectors
       "tStart",
       "xStart",
       "yStart",
-      "zStart",
+      "zStart"
       // "Eion", 
       //"Ephot"
-      "dEdx"
+      //"dEdx"
       }
 		  );
 
@@ -547,13 +560,13 @@ typedef struct trackVectors
 		  //	  int parentID, 
 	       	  int numPhotons,
 	       	  double energy,
-                  double tStart
+		  double tStart,
 	          double xStart,
 		  double yStart,
-	          double zStart,
+	          double zStart
 		  //	  double Eion, 
 		  // double Ephot
-		  double dEdx
+						//	  double dEdx
 		  )
 
 
@@ -572,7 +585,7 @@ typedef struct trackVectors
     hit.zStart.push_back( zStart );
     // hit.Eion.push_back( ebrem_Eion );
     // hit.Ephot.push_back( ebrem_Ephot );
-    hit.dEdx.push_back( ebrem_dEdx );
+    //hit.dEdx.push_back( ebrem_dEdx );
   },
 
 
@@ -586,20 +599,22 @@ typedef struct trackVectors
       "tStart",
       "xStart",
       "yStart",
-      "zStart", 
+      "zStart"
       //"Eion", 
       //"Ephot"
-      "dEdx"
+      //"dEdx"
       }
                   );
 
- // Add each hitMap to combinedVector:
+ // Add each hitMap to hitsVector:
 
- combinedVector.push_back( pri_hitMap );
- combinedVector.push_back( compt_hitMap );
- combinedVector.push_back( phot_hitMap );
- combinedVector.push_back( pair_hitMap );
- combinedVector.push_back( ebrem_hitMap );
+ 
+ hitsVector.push_back( compt_hitMap );
+ hitsVector.push_back( phot_hitMap );
+ hitsVector.push_back( pair_hitMap );
+ hitsVector.push_back( ebrem_hitMap );
+
+ std::tuple< priHitMap, hitMap, hitMap, hitMap, hitMap > combinedVector = { pri_hitMap , compt_hitMap, phot_hitMap, pair_hitMap, ebrem_hitMap };
 
 
  // Create the new output ntuple: 
@@ -637,7 +652,7 @@ typedef struct trackVectors
  std::vector<double> compt_zStart;
  //std::vector<double> compt_Eion;
  //std::vector<double> compt_Ephot;
- std::vector<double> compt_dEdx;
+ // std::vector<double> compt_dEdx;
 
  int phot_Run;
  int phot_Event;
@@ -652,7 +667,7 @@ typedef struct trackVectors
  std::vector<double> phot_zStart;
  // std::vector<double> phot_Eion;
  //std::vector<double> phot_Ephot;
- std::vector<double> phot_dEdx;
+ // std::vector<double> phot_dEdx;
 
 
  int pair_Run;
@@ -668,7 +683,7 @@ typedef struct trackVectors
  std::vector<double> pair_zStart;
  //std::vector<double> pair_Eion;
  //std::vector<double> pair_Ephot;
- std::vector<double> pair_dEdx;
+ //std::vector<double> pair_dEdx;
 
 
  int ebrem_Run;
@@ -684,7 +699,7 @@ typedef struct trackVectors
  std::vector<double> ebrem_zStart;
  // std::vector<double> ebrem_Eion;
  // std::vector<double> ebrem_Ephot;
- std::vector<double> ebrem_dEdx;
+ //std::vector<double> ebrem_dEdx;
 
 
  // Assign each variable to its own branch:
@@ -715,7 +730,7 @@ typedef struct trackVectors
  ntuple->Branch("compt_zStart", &compt_zStart);
  //ntuple->Branch("compt_Eion", &compt_Eion);
  //ntuple->Branch("compt_Ephot", &compt_Ephot);
- ntuple->Branch("compt_dEdx", &compt_dEdx);
+ //ntuple->Branch("compt_dEdx", &compt_dEdx);
 
  ntuple->Branch("phot_Run", &phot_Run, "phot_Run/I");
  ntuple->Branch("phot_Event", &phot_Event, "phot_Event/I");
@@ -730,7 +745,7 @@ typedef struct trackVectors
  ntuple->Branch("phot_zStart", &phot_zStart);
  //ntuple->Branch("phot_Eion", &phot_Eion);
  //ntuple->Branch("phot_Ephot", &phot_Ephot);
- ntuple->Branch("phot_dEdx", &phot_dEdx);
+ //ntuple->Branch("phot_dEdx", &phot_dEdx);
 
  ntuple->Branch("pair_Run", &pair_Run, "pair_Run/I");
  ntuple->Branch("pair_Event", &pair_Event, "pair_Event/I");
@@ -745,7 +760,7 @@ typedef struct trackVectors
  ntuple->Branch("pair_zStart", &pair_zStart);
  // ntuple->Branch("pair_Eion", &pair_Eion);
  //ntuple->Branch("pair_Ephot", &pair_Ephot);
- ntuple->Branch("pair_dEdx", &pair_dEdx);
+ //ntuple->Branch("pair_dEdx", &pair_dEdx);
 
  ntuple->Branch("ebrem_Run", &ebrem_Run, "ebrem_Run/I");
  ntuple->Branch("ebrem_Event", &ebrem_Event, "ebrem_Event/I");
@@ -760,17 +775,19 @@ typedef struct trackVectors
  ntuple->Branch("ebrem_zStart", &ebrem_zStart);
  // ntuple->Branch("ebrem_Eion", &ebrem_Eion);
  //ntuple->Branch("ebrem_Ephot", &ebrem_Ephot);
- ntuple->Branch("ebrem_dEdx", &ebrem_dEdx);
+ //ntuple->Branch("ebrem_dEdx", &ebrem_dEdx);
 
  // For each entry in combinedVector... 
 
- for ( auto j = combinedVector.begin(); j!= combinedVector.end(); ++j)
+ int length_tuple = std::tuple_size<decltype(combinedVector)>::value;
+
+ for ( auto j = 0; j < length_tuple; ++j);
 
    {
- 
+     auto k = combinedVector.get<j>
  // Loop over map, write each entry to output ntuple. 
 
-     if ( *j = 0 ) {
+     if ( *k = 0 ) {
        for ( auto i = pri_hitMap.begin(); i!= pri_hitMap.end(); ++i ) 
 	 {
 	   auto key = (*i).first;
@@ -791,7 +808,7 @@ typedef struct trackVectors
 	   pri_pz = vectors.pz;
      }
        }
-     if ( *j = 1 ) {
+     if ( *k = 1 ) {
  for ( auto i = compt_hitMap.begin(); i!= compt_hitMap.end(); ++i )
    {
      auto key = (*i).first;
@@ -811,11 +828,11 @@ typedef struct trackVectors
      compt_zStart = vectors.zStart;
      // compt_Eion = vectors.Eion; 
      // compt_Ephot = vectors.Ephot;
-     compt_dEdx = vectors.dEdx;
+     //  compt_dEdx = vectors.dEdx;
    }
      }
 
-     if ( *j = 2 ) {
+     if ( *k = 2 ) {
 
  for ( auto i = phot_hitMap.begin(); i!= phot_hitMap.end(); ++i )
    {
@@ -836,10 +853,10 @@ typedef struct trackVectors
      phot_zStart = vectors.zStart;
      //     phot_Eion = vectors.Eion;
      // phot_Ephot = vectors.Ephot;
-     phot_dEdx = vectors.dEdx;
+     //phot_dEdx = vectors.dEdx;
    }
      }
-     if ( *j = 3 ) {
+     if ( *k = 3 ) {
  for ( auto i = pair_hitMap.begin(); i!= pair_hitMap.end(); ++i )
    {
      auto key = (*i).first;
@@ -859,12 +876,12 @@ typedef struct trackVectors
      pair_zStart = vectors.zStart;
      //     pair_Eion = vectors.Eion;
      // pair_Ephot = vectors.Ephot;
-     pair_dEdx = vectors.dEdx;
+     //pair_dEdx = vectors.dEdx;
      
    }
      }
 
-     if ( *j = 4 ) {
+     if ( *k = 4 ) {
 
  for ( auto i = ebrem_hitMap.begin(); i!= ebrem_hitMap.end(); ++i )
    {
@@ -885,7 +902,7 @@ typedef struct trackVectors
      ebrem_zStart = vectors.zStart;
      // ebrem_Eion = vectors.Eion;
      //ebrem_Ephot = vectors.Ephot;
-     ebrem_dEdx = vectors.dEdx;
+     //ebrem_dEdx = vectors.dEdx;
 
    }
      }
