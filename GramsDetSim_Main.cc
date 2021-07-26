@@ -103,3 +103,11 @@ int main ( int argc, char** argv ) {
     updatedNtuple.Snapshot("recombinationNtuple" , outputfile );
 
 }
+
+/* Next steps:
+1) Change the inputNtuple to only read in the values E_ion, t, x, y, z
+2) E_ion will become E, x, y will remain the same. What will differ is that t_final will equat t_n + z*drift speed. 
+Explanation: The ionization energy (in a perfect system) will remain the same from what the GG4 Level determines it will output.
+The x position and the y position will also remain the same. The time, however, will differ. This is because the detector will not
+read out the energy reading the wires immediately upon emission. Rather the energy will only be deposited after the electrons
+drift across the LArTPC.
