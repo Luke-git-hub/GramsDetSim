@@ -115,4 +115,4 @@ The x position and the y position will also remain the same. The time, however, 
 read out the energy reading the wires immediately upon emission. Rather the energy will only be deposited after the electrons
 drift across the LArTPC.
 4) Drift speed: 2.2 mm/microsec
-5) XML integration*/
+5) XML integration */
