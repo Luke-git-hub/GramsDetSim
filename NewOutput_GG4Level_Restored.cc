@@ -39,7 +39,7 @@ int main( int argc, char** argv ) {
   // Read TrackInfo ntuple:
 
   ROOT::RDataFrame trackInfo( "TrackInfo", filename,
-			      {"Run", "Event", "TrackID","ParentID", "ProcessName"} );
+			      {"Run", "Event", "TrackID", "ProcessName"} );
 
   // Copy TrackInfo's info to trackMap: 
 
@@ -47,7 +47,7 @@ int main( int argc, char** argv ) {
 		    [&trackMap]( int run, 
 				 int event, 
 				 int trackID, 
-				 ROOT::VecOps::RVec<char>process)
+				 ROOT::VecOps::RVec<char> process)
 		    {
 		      std::string processName;
 		      for ( auto i = process.begin(); 
