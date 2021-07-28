@@ -9,7 +9,7 @@
 // process for GramsG4. However, it can be compiled stand-alone 
 // assuming that ROOT has been set up with:
 
-// g++ <program-name>.cc `root-config --clfags --libs` -o <program-name>
+// g++ <program-name>.cc `root-config --cflags --libs` -o <program-name>
 
 // ROOT includes.
 #include <ROOT/RDataFrame.hxx>
@@ -27,25 +27,25 @@ static const bool debug = false;
 // ooooOOOOooooOOOOooooOOOOooooOOOOooooOOOO
 // Begin function definitions:
 
-// Recombination takes the input of change in ionized energy (E), electric field (F),
-// and Argon density rho (rho), and returnes the amount of ionized energy
-// which does not undergo recombination.
-double recombination(double rho, 
-        double F, 
-        double Eion)
+double charge_recombination(double dEdx)
+// Takes input of the change in energy across the distance travelled in a single step by the particle
+// source for this equation is eqn 2.4 in the 2013 paper "A study of electron recombination using highlyionizing particles in the ArgoNeuT Liquid ArgonTPC"
+// this modified box model is used because it works for all ranges of dE/dx as well as not having the technical difficulties that arise when applying the birks model to highly ionizing particles
 {
-    double value;
-    double numer;
-    double total;
-
-//The following calculations are based off of the modified box model used in the ICARUS 
-// experiment, with constant values taken from the brookhaven page on liquid argon TPCs.
-
-    value = (0.930 + (0.212/(F * rho)) * (Eion));
-    numer = std::log (value);
-    total = numer / (0.212 / ( F * rho));
-    
-    return total;
+  double field; //electric field on the cloud of ionized particles, varies with position due to space charge, which we don't have a model for yet
+  //since geant4's units gives dEdx as MeV/mm, we need to convert it to MeV/cm
+  double new_dEdx = dEdx * 10;
+  double a = 0.930; //average of the a value for 20 to 90 degrees angle bins for proton sample detection in ArgoNeuT, unitless value
+  double b = 0.212; // average of the B value for 20 to 90 degrees angle bins for proton sample detection in ArgoNeuT, units of (kV*g)/(MeV*cm^3)
+  double rho = 1.3973; //density of liquid argon, from brookhaven LAr page, units of (g/cm^3)
+  //multiple calculations for this are presented in the paper, we will be using eqn 8.1 to calculate sigma as it removes some variables
+  field = 1.0; //since we can't model space charge, let's just set it to a constant value for now (units are kV/cm)
+  //The following calculations are based off of the modified box model used in the ICARUS experiment, with constant values taken from the brookhaven page on liquid argon TPCs
+  //Be very specific in where this equation is from (what paper), what it is finding, what it is talking about
+  double sigma = (b * dEdx) / (field * rho);
+  double total = log(a + sigma) / sigma; //using cmath's log function
+  //returns a decimal value representing the fraction that has survived recombination
+  return total;
 }
 
 // ____----____----____----____----____----____----____----____----
@@ -62,7 +62,7 @@ std::vector<double> recombinationVector (
     std::vector<double> recombinationResult ( vectorSize );
 
     for ( size_t i = 0; i != vectorSize; ++i ){
-        recombinationResult[i] = recombination ( 1.396 , .1 , Eion[i] );
+        recombinationResult[i] = charge_recombination ( Eion[i] );
     }
 
     return recombinationResult;
@@ -98,12 +98,12 @@ int main ( int argc, char** argv ) {
 
     // Builds and appends a new column onto inputNtuple after applying function (argument 2) and the arguments necessary for the 
     // function to execute (argument 3).
-   auto updatedNtuple = inputNtuple.Define( "recombination", recombinationVector, {
+   auto updatedNtuple = inputNtuple.Define( "energy_after_recombination", recombinationVector, {
        "Eion"} 
     );
 
     // 
-    updatedNtuple.Snapshot("recombinationNtuple" , outputfile );
+    updatedNtuple.Snapshot("DetSimNtuple" , outputfile );
 
 }
 
@@ -114,6 +114,5 @@ Explanation: The ionization energy (in a perfect system) will remain the same fr
 The x position and the y position will also remain the same. The time, however, will differ. This is because the detector will not
 read out the energy reading the wires immediately upon emission. Rather the energy will only be deposited after the electrons
 drift across the LArTPC.
-3) Update names "energy_after_recombination" & "DetSimNtuple"
 4) Drift speed: 2.2 mm/microsec
-5) XML integration
+5) XML integration*/
