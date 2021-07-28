@@ -70,9 +70,6 @@ int main( int argc, char** argv ) {
     } // loop over track
   } // if debug
 
-
-  std::cout << "Debug 074" << std::endl;
-
   // // Define a map that takes run, event, trackID and parentID and maps to a vector containing the rest of the primary information:
   // // Is this even necessary? See below... ********************************************************************************************
   // typedef std::map< std::tuple< int, int, int, int>, std::vector< std::string, //processName
@@ -308,9 +305,6 @@ auto ebrem_dEdx = ebremHits
 
 
 
- std::cout << "Debug 311" << std::endl;
-
-
        // Define hitVectors:
 
 typedef struct hitVectors
@@ -404,8 +398,6 @@ typedef struct trackVectors
 	}
 		 );
 
- std::cout << "Debug 407" << std::endl;
-
  // Include Compton-induced hits in compt_hitMap:
 
  comptonHits.Foreach(
@@ -460,9 +452,6 @@ typedef struct trackVectors
 	 }
      );
 
-
- std::cout << "Debug 464" << std::endl;
-
  photHits.Foreach(
 		  [&phot_hitMap, &phot_dEdx](
 	      int run,
@@ -513,9 +502,6 @@ typedef struct trackVectors
 	//"dEdx"
 	}
 		  );
-
-
- std::cout << "Debug 518" << std::endl;
 
  pairHits.Foreach(
 		  [&pair_hitMap, &pair_dEdx]( int run,
@@ -627,9 +613,6 @@ typedef struct trackVectors
  //hitsVector.push_back( phot_hitMap );
  //hitsVector.push_back( pair_hitMap );
  // hitsVector.push_back( ebrem_hitMap );
-
-
- std::cout << "Debug 624" << std::endl;
 
  std::tuple< priHitMap, hitMap, hitMap, hitMap, hitMap > combinedVector = { pri_hitMap , compt_hitMap, phot_hitMap, pair_hitMap, ebrem_hitMap };
 
@@ -813,7 +796,7 @@ typedef struct trackVectors
        
 	   auto &vectors = (*i).second;
 
-	   pri_energy = vectors.Etot;
+	   pri_Etot = vectors.Etot;
 	   pri_x = vectors.x;
 	   pri_y = vectors.y;
 	   pri_z = vectors.z;
