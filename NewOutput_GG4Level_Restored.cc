@@ -609,10 +609,10 @@ typedef struct trackVectors
  // Add each hitMap to hitsVector:
 
  
- hitsVector.push_back( compt_hitMap );
- hitsVector.push_back( phot_hitMap );
- hitsVector.push_back( pair_hitMap );
- hitsVector.push_back( ebrem_hitMap );
+ //hitsVector.push_back( compt_hitMap );
+ //hitsVector.push_back( phot_hitMap );
+ //hitsVector.push_back( pair_hitMap );
+ // hitsVector.push_back( ebrem_hitMap );
 
  std::tuple< priHitMap, hitMap, hitMap, hitMap, hitMap > combinedVector = { pri_hitMap , compt_hitMap, phot_hitMap, pair_hitMap, ebrem_hitMap };
 
@@ -781,13 +781,11 @@ typedef struct trackVectors
 
  int length_tuple = std::tuple_size<decltype(combinedVector)>::value;
 
- for ( auto j = 0; j < length_tuple; ++j);
 
-   {
-     auto k = combinedVector.get<j>
+   
  // Loop over map, write each entry to output ntuple. 
 
-     if ( *k = 0 ) {
+     
        for ( auto i = pri_hitMap.begin(); i!= pri_hitMap.end(); ++i ) 
 	 {
 	   auto key = (*i).first;
@@ -807,8 +805,8 @@ typedef struct trackVectors
 	   pri_py = vectors.py;
 	   pri_pz = vectors.pz;
      }
-       }
-     if ( *k = 1 ) {
+       
+     
  for ( auto i = compt_hitMap.begin(); i!= compt_hitMap.end(); ++i )
    {
      auto key = (*i).first;
@@ -830,9 +828,9 @@ typedef struct trackVectors
      // compt_Ephot = vectors.Ephot;
      //  compt_dEdx = vectors.dEdx;
    }
-     }
+     
 
-     if ( *k = 2 ) {
+
 
  for ( auto i = phot_hitMap.begin(); i!= phot_hitMap.end(); ++i )
    {
@@ -855,8 +853,8 @@ typedef struct trackVectors
      // phot_Ephot = vectors.Ephot;
      //phot_dEdx = vectors.dEdx;
    }
-     }
-     if ( *k = 3 ) {
+     
+     
  for ( auto i = pair_hitMap.begin(); i!= pair_hitMap.end(); ++i )
    {
      auto key = (*i).first;
@@ -879,9 +877,9 @@ typedef struct trackVectors
      //pair_dEdx = vectors.dEdx;
      
    }
-     }
+     
 
-     if ( *k = 4 ) {
+     
 
  for ( auto i = ebrem_hitMap.begin(); i!= ebrem_hitMap.end(); ++i )
    {
@@ -905,10 +903,10 @@ typedef struct trackVectors
      //ebrem_dEdx = vectors.dEdx;
 
    }
-     }
+     
 
  ntuple->Fill();
-}
+
 
  ntuple->Write();
  output->Close();
