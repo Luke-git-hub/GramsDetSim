@@ -6,6 +6,7 @@ Main Function:
 User will save output from GramsG4 Sim to a text file titled GramsG4Data.txt. 
 
 Recombination Function:
+Based off the modified box model used by MicroBooNE, among others
 
 Absorbtion Function:
 
