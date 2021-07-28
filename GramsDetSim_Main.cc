@@ -42,7 +42,7 @@ double recombination(double rho,
 // experiment, with constant values taken from the brookhaven page on liquid argon TPCs.
 
     value = (0.930 + (0.212/(F * rho)) * (Eion));
-    numer = log (value);
+    numer = std::log (value);
     total = numer / (0.212 / ( F * rho));
     
     return total;
@@ -94,12 +94,26 @@ int main ( int argc, char** argv ) {
     */
 
    // The input dataframe. 
-   ROOT::RDataFrame inputNtuple( "recombinationNtuple", filename );
+   ROOT::RDataFrame inputNtuple( "Geant4Ntuple", filename );
 
+    // Builds and appends a new column onto inputNtuple after applying function (argument 2) and the arguments necessary for the 
+    // function to execute (argument 3).
    auto updatedNtuple = inputNtuple.Define( "recombination", recombinationVector, {
        "Eion"} 
     );
 
+    // 
     updatedNtuple.Snapshot("recombinationNtuple" , outputfile );
 
 }
+
+/* Next steps:
+1) Change the inputNtuple to only read in the values E_ion, t, x, y, z
+2) E_ion will become E, x, y will remain the same. What will differ is that t_final will equat t_n + z*drift speed. 
+Explanation: The ionization energy (in a perfect system) will remain the same from what the GG4 Level determines it will output.
+The x position and the y position will also remain the same. The time, however, will differ. This is because the detector will not
+read out the energy reading the wires immediately upon emission. Rather the energy will only be deposited after the electrons
+drift across the LArTPC.
+3) Update names "energy_after_recombination" & "DetSimNtuple"
+4) Drift speed: 2.2 mm/microsec
+5) XML integration
