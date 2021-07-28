@@ -377,7 +377,7 @@ typedef struct trackVectors
     {
       auto &hit= pri_hitMap[{run, event, trackID}];
 
-      hit.energy.push_back( Etot );
+      hit.Etot.push_back( Etot );
       hit.x.push_back( x );
       hit.y.push_back( y );
       hit.z.push_back( z );
