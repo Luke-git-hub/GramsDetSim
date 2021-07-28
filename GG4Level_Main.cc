@@ -332,7 +332,7 @@ typedef struct hitVectors
 
 typedef struct trackVectors
 {
-  std::vector<double> energy;
+  std::vector<double> Etot;
   std::vector<double> x;
   std::vector<double> y; 
   std::vector<double> z;
@@ -365,7 +365,7 @@ typedef struct trackVectors
 	       int event, 
 	       int trackID, 
 	       //int parentID, 
-	       double energy, 
+	       double Etot, 
 	       double x, 
 	       double y, 
 	       double z, 
@@ -377,7 +377,7 @@ typedef struct trackVectors
     {
       auto &hit= pri_hitMap[{run, event, trackID}];
 
-      hit.energy.push_back( energy );
+      hit.energy.push_back( Etot );
       hit.x.push_back( x );
       hit.y.push_back( y );
       hit.z.push_back( z );
@@ -389,11 +389,11 @@ typedef struct trackVectors
     },
     // list ntuple columns:
 
-    {   "run", 
-	"event", 
-	"trackID", 
+    {   "Run", 
+	"Event", 
+	"TrackID", 
 	//"parentID", 
-	"energy", 
+	"Etot", 
 	"x", 
 	"y", 
 	"z", 
@@ -443,9 +443,9 @@ typedef struct trackVectors
 
 
      // List ntuple columns: 
-    {   "run",
-	"event", 
-	"trackID", 
+    {   "Run",
+	"Event", 
+	"TrackID", 
 	//"parentID",
         "numPhotons", 
         "energy", 
@@ -646,7 +646,7 @@ typedef struct trackVectors
  int pri_Event;
  int pri_TrackID;
  //int pri_ParentID;
- std::vector<double> pri_energy;
+ std::vector<double> pri_Etot;
  std::vector<double> pri_x;
  std::vector<double> pri_y;
  std::vector<double> pri_z;
@@ -725,7 +725,7 @@ typedef struct trackVectors
  ntuple->Branch("pri_Event", &pri_Event, "pri_Event/I");
  ntuple->Branch("pri_TrackID", &pri_TrackID, "pri_TrackID/I");
  // ntuple->Branch("pri_ParentID", &pri_ParentID, "pri_ParentID/I");
- ntuple->Branch("pri_energy", &pri_energy);
+ ntuple->Branch("pri_Etot", &pri_Etot);
  ntuple->Branch("pri_x", &pri_x);
  ntuple->Branch("pri_y", &pri_y);
  ntuple->Branch("pri_z", &pri_z);
@@ -813,7 +813,7 @@ typedef struct trackVectors
        
 	   auto &vectors = (*i).second;
 
-	   pri_energy = vectors.energy;
+	   pri_energy = vectors.Etot;
 	   pri_x = vectors.x;
 	   pri_y = vectors.y;
 	   pri_z = vectors.z;
