@@ -116,3 +116,5 @@ read out the energy reading the wires immediately upon emission. Rather the ener
 drift across the LArTPC.
 4) Drift speed: 2.2 mm/microsec
 5) XML integration  */
+
+// end
