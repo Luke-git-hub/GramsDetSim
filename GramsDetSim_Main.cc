@@ -77,7 +77,7 @@ std::vector<double> recombinationVector (
 int main ( int argc, char** argv ) {
     
     // Determine the name of the input file. 
-    std::string filename("NewOutput_GG4Level.root");
+    std::string filename("gramsg4.root");
     if ( argc > 1 )
         filename = std::string( argv[1] );
 
